@@ -3,10 +3,10 @@ import { Zap, LayoutGrid, Image, Braces, Copy, Check } from 'lucide-react'
 import { copyToClipboard } from '../lib/api'
 
 const apis = [
-  { id: 'random', label: '随机图片接口', icon: Zap, path: '/random' },
+  { id: 'random', label: '随机图片接口', icon: Zap, path: '/api/random' },
   { id: 'wallpaper', label: '横屏图片接口', icon: LayoutGrid, path: '/api/wallpaper' },
   { id: 'cover', label: '竖屏图片接口', icon: Image, path: '/api/cover' },
-  { id: 'json', label: 'JSON 接口', icon: Braces, path: '/json' },
+  { id: 'json', label: 'JSON 接口', icon: Braces, path: '/api/json' },
 ]
 
 export default function ApiSection() {
@@ -18,7 +18,7 @@ export default function ApiSection() {
     setTimeout(() => setCopied(null), 2000)
   }
 
-  const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://tk.hangdn.com'
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
 
   return (
     <div className="card p-5 mb-6 animate-slide-up">

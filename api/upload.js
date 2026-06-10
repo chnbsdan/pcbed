@@ -28,7 +28,7 @@ export default async function handler(req, res) {
     if (file.size > 10 * 1024 * 1024) return res.status(400).json({ error: 'File too large' })
     
     const ext = file.filename.split('.').pop().toLowerCase()
-    if (!['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext)) {
+    if (!['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif'].includes(ext)) {
       return res.status(400).json({ error: 'Unsupported file format' })
     }
     

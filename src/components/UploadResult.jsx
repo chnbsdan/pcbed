@@ -5,13 +5,15 @@ export default function UploadResult({ results }) {
   const [previewLoading, setPreviewLoading] = useState({})
   const [copied, setCopied] = useState(null)
 
-  const handleCopy = (url, id) => {
+  const handleCopy = (url, id, e) => {
+    e.stopPropagation()  // 阻止冒泡
     copyToClipboard(url)
     setCopied(id)
     setTimeout(() => setCopied(null), 2000)
   }
 
-  const handlePreview = (url, id) => {
+  const handlePreview = (url, id, e) => {
+    e.stopPropagation()  // 阻止冒泡
     setPreviewLoading(prev => ({ ...prev, [id]: true }))
     const img = new Image()
     img.onload = () => {
@@ -53,16 +55,16 @@ export default function UploadResult({ results }) {
                   <div className="mt-2 flex items-center gap-2 flex-wrap">
                     <code className="text-xs bg-white px-2 py-1 rounded flex-1 truncate">{result.url}</code>
                     <button
-                      onClick={() => handleCopy(result.url, `url-${idx}`)}
+                      onClick={(e) => handleCopy(result.url, `url-${idx}`, e)}
                       className="p-1.5 hover:bg-white rounded-lg transition"
                     >
                       {copied === `url-${idx}` ? <i className="fas fa-check text-green-500"></i> : <i className="fas fa-copy text-gray-400"></i>}
                     </button>
-                    <a href={result.url} target="_blank" rel="noopener noreferrer" className="p-1.5 hover:bg-white rounded-lg transition">
+                    <a href={result.url} target="_blank" rel="noopener noreferrer" className="p-1.5 hover:bg-white rounded-lg transition" onClick={(e) => e.stopPropagation()}>
                       <i className="fas fa-external-link-alt text-gray-400"></i>
                     </a>
                     <button
-                      onClick={() => handlePreview(result.url, idx)}
+                      onClick={(e) => handlePreview(result.url, idx, e)}
                       className="p-1.5 hover:bg-white rounded-lg transition"
                     >
                       <i className="fas fa-eye text-gray-400"></i>

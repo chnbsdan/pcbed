@@ -10,9 +10,13 @@ export default async function handler(req, res) {
     return res.status(400).send('Filename required')
   }
   
-  // 设置 CORS 和缓存头
+  // 设置响应头 - 关键：禁止缓存，强制内联显示
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
+  res.setHeader('Pragma', 'no-cache')
+  res.setHeader('Expires', '0')
+  // 关键：强制浏览器显示而不是下载
+  res.setHeader('Content-Disposition', 'inline')
   
   const folders = ['wallpaper', 'cover']
   
@@ -31,9 +35,7 @@ export default async function handler(req, res) {
         const contentType = response.headers.get('Content-Type') || 'image/jpeg'
         const body = await response.arrayBuffer()
         
-        // 关键：设置内联显示，禁止下载
         res.setHeader('Content-Type', contentType)
-        res.setHeader('Content-Disposition', 'inline')
         return res.send(Buffer.from(body))
       }
     }

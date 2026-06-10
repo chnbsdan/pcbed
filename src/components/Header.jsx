@@ -1,12 +1,11 @@
 import React from 'react'
-import { Upload, Github, ExternalLink } from 'lucide-react'
 
 export default function Header() {
   return (
     <div className="text-center mb-8 animate-fade-in">
       <div className="flex items-center justify-center gap-3 mb-3">
         <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg">
-          <Upload className="w-8 h-8 text-white" />
+          <span className="text-2xl">📸</span>
         </div>
         <h1 className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg">
           ImgBed

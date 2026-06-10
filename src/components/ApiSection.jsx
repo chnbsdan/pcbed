@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
-import { Zap, LayoutGrid, Image, Braces, Copy, Check } from 'lucide-react'
+import { Zap, Grid3x3, Image, Braces, Copy, Check } from 'lucide-react'
 import { copyToClipboard } from '../lib/api'
 
 const apis = [
   { id: 'random', label: '随机图片接口', icon: Zap, path: '/api/random' },
-  { id: 'wallpaper', label: '横屏图片接口', icon: LayoutGrid, path: '/api/wallpaper' },
+  { id: 'wallpaper', label: '横屏图片接口', icon: Grid3x3, path: '/api/wallpaper' },
   { id: 'cover', label: '竖屏图片接口', icon: Image, path: '/api/cover' },
   { id: 'json', label: 'JSON 接口', icon: Braces, path: '/api/json' },
 ]

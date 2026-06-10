@@ -1,4 +1,4 @@
-// api/img/[filename].js - 图片代理服务（直接访问图片）
+// api/img/[filename].js
 const GITHUB_USER = process.env.GITHUB_USER || 'chnbsdan'
 const GITHUB_REPO = process.env.GITHUB_REPO || 'imgbed-storage'
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN
@@ -10,12 +10,11 @@ export default async function handler(req, res) {
     return res.status(400).send('Filename required')
   }
   
-  // 尝试从 wallpaper 和 cover 文件夹中查找图片
-  const folders = ['wallpaper', 'cover']
-  
-  // 设置响应头
-  res.setHeader('Cache-Control', 'public, max-age=86400')
+  // 设置 CORS 和缓存头
   res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
+  
+  const folders = ['wallpaper', 'cover']
   
   try {
     for (const folder of folders) {
@@ -32,13 +31,13 @@ export default async function handler(req, res) {
         const contentType = response.headers.get('Content-Type') || 'image/jpeg'
         const body = await response.arrayBuffer()
         
+        // 关键：设置内联显示，禁止下载
         res.setHeader('Content-Type', contentType)
         res.setHeader('Content-Disposition', 'inline')
         return res.send(Buffer.from(body))
       }
     }
     
-    // 两个文件夹都没找到
     return res.status(404).send('Image not found')
   } catch (error) {
     console.error('Image proxy error:', error)

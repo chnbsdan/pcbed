@@ -1,4 +1,4 @@
-// api/stats.js - 统计信息
+// api/stats.js - 统计信息（包含分类外部图片）
 const GITHUB_USER = process.env.GITHUB_USER || 'chnbsdan'
 const GITHUB_REPO = process.env.GITHUB_REPO || 'imgbed-storage'
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN
@@ -15,12 +15,12 @@ async function getExternalImages() {
     })
     if (response.ok) {
       const data = await response.json()
-      return data.images || []
+      return { wallpaper: data.wallpaper || [], cover: data.cover || [] }
     }
   } catch (error) {
     console.error('Failed to fetch external images:', error)
   }
-  return []
+  return { wallpaper: [], cover: [] }
 }
 
 export default async function handler(req, res) {
@@ -32,7 +32,7 @@ export default async function handler(req, res) {
   }
   
   const folders = ['wallpaper', 'cover']
-  const stats = { github_folders: {}, github_total: 0, external_total: 0, grand_total: 0 }
+  const stats = { github_folders: {}, github_total: 0, external_folders: {}, external_total: 0, grand_total: 0 }
   
   try {
     // 获取 GitHub 图片统计
@@ -58,9 +58,11 @@ export default async function handler(req, res) {
       }
     }
     
-    // 获取外部图片数量
+    // 获取外部图片统计
     const externalImages = await getExternalImages()
-    stats.external_total = externalImages.length
+    stats.external_folders.wallpaper = externalImages.wallpaper.length
+    stats.external_folders.cover = externalImages.cover.length
+    stats.external_total = externalImages.wallpaper.length + externalImages.cover.length
     stats.grand_total = stats.github_total + stats.external_total
     
     res.status(200).json(stats)

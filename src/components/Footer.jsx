@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react'
 
 export default function Footer() {
-  // 设置为 100 天前的日期
-  const startDate = new Date()
-  startDate.setDate(startDate.getDate() - 100)
-  startDate.setHours(0, 0, 0, 0)
+  // 设置固定的起始日期（你的实际上线日期，例如 2026年3月5日）
+  // 注意：月份从0开始，所以 2 代表 3 月
+  const startDate = new Date(2026, 2, 5, 0, 0, 0)  // 2026年3月5日
   
   const [timeElapsed, setTimeElapsed] = useState({
-    days: 100,
+    days: 0,
     hours: 0,
     minutes: 0,
     seconds: 0
@@ -16,7 +15,7 @@ export default function Footer() {
   useEffect(() => {
     const timer = setInterval(() => {
       const now = new Date()
-      const diff = now - startDate
+      const diff = now - startDate // 时间差（毫秒）
 
       const days = Math.floor(diff / (1000 * 60 * 60 * 24))
       const hours = Math.floor((diff % (86400000)) / (1000 * 60 * 60))
@@ -55,11 +54,11 @@ export default function Footer() {
         <a href="https://github.com/chnbsdan" target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-white transition ml-1">GitHub</a>
       </p>
       
-      {/* 🆕 管理入口 */}
+      {/* 管理入口 */}
       <p className="mt-2">
         <a href="/manage" className="text-white/60 hover:text-white transition text-xs flex items-center justify-center gap-1">
           <i className="fas fa-cog"></i>
-          图片管理
+          管理登录
         </a>
       </p>
       

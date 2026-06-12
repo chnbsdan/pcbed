@@ -11,7 +11,7 @@ function App() {
   const [stats, setStats] = useState({ grand_total: 0, github_folders: { wallpaper: 0, cover: 0 }, external_total: 0 })
   const [uploadResults, setUploadResults] = useState([])
   const [isUploading, setIsUploading] = useState(false)
-  const [convertFormat, setConvertFormat] = useState('original') // 'original', 'webp', 'avif'
+  const [convertToWebp, setConvertToWebp] = useState(false)  // 是否转换为 WebP
 
   // 设置随机背景
   const setRandomBackground = useCallback(() => {
@@ -105,41 +105,6 @@ function App() {
     })
   }, [])
 
-  // 将图片转换为 AVIF 格式
-  const convertToAVIF = useCallback((file, quality = 0.85) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.readAsDataURL(file)
-      reader.onload = (e) => {
-        const img = new Image()
-        img.src = e.target.result
-        img.onload = () => {
-          const canvas = document.createElement('canvas')
-          canvas.width = img.width
-          canvas.height = img.height
-          const ctx = canvas.getContext('2d')
-          ctx.drawImage(img, 0, 0)
-          canvas.toBlob(
-            (blob) => {
-              if (!blob) {
-                reject(new Error('AVIF 转换失败'))
-                return
-              }
-              const avifFile = new File([blob], file.name.replace(/\.[^/.]+$/, '.avif'), {
-                type: 'image/avif',
-              })
-              resolve(avifFile)
-            },
-            'image/avif',
-            quality
-          )
-        }
-        img.onerror = reject
-      }
-      reader.onerror = reject
-    })
-  }, [])
-
   const dataURLToBlob = (dataURL) => {
     const arr = dataURL.split(',')
     const bstr = atob(arr[1])
@@ -164,25 +129,18 @@ function App() {
         continue
       }
       
-      // 根据选择的格式进行转换
-      if (convertFormat === 'webp' && !['gif', 'avif'].includes(ext)) {
+      // 如果用户选择了转换为 WebP，且不是 gif/avif
+      if (convertToWebp && !['gif', 'avif'].includes(ext)) {
         try {
           file = await convertToWebP(file)
           console.log(`✅ 已转换 ${file.name} 为 WebP`)
         } catch (err) {
           console.error('WebP 转换失败:', err)
         }
-      } else if (convertFormat === 'avif' && !['gif', 'webp'].includes(ext)) {
-        try {
-          file = await convertToAVIF(file)
-          console.log(`✅ 已转换 ${file.name} 为 AVIF`)
-        } catch (err) {
-          console.error('AVIF 转换失败:', err)
-        }
       }
       
-      // 大图压缩（WebP/AVIF 不再重复压缩）
-      if (file.size > 3 * 1024 * 1024 && file.type !== 'image/webp' && file.type !== 'image/avif') {
+      // 大图压缩（WebP 不再重复压缩）
+      if (file.size > 3 * 1024 * 1024 && file.type !== 'image/webp') {
         try {
           file = await compressImage(file)
         } catch (e) {
@@ -244,8 +202,8 @@ function App() {
             onUpload={handleUpload} 
             isLoading={isUploading} 
             onRefreshBg={setRandomBackground}
-            convertFormat={convertFormat}
-            onFormatChange={setConvertFormat}
+            convertToWebp={convertToWebp}
+            onConvertChange={setConvertToWebp}
           />
           <UploadResult results={uploadResults} />
         </div>

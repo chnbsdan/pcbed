@@ -1,18 +1,8 @@
 {
   "rewrites": [
-    { "source": "/api/admin/list", "destination": "/api/admin/list" },
-    { "source": "/api/admin/delete", "destination": "/api/admin/delete" },
-    { "source": "/api/random", "destination": "/api/random" },
-    { "source": "/api/wallpaper", "destination": "/api/wallpaper" },
-    { "source": "/api/cover", "destination": "/api/cover" },
-    { "source": "/api/json", "destination": "/api/json" },
-    { "source": "/api/list", "destination": "/api/list" },
-    { "source": "/api/stats", "destination": "/api/stats" },
-    { "source": "/api/upload", "destination": "/api/upload" },
-    { "source": "/api/img/(.*)", "destination": "/api/img/$1" },
-    { "source": "/wallpaper/(.*)", "destination": "/api/img/$1" },
-    { "source": "/cover/(.*)", "destination": "/api/img/$1" },
-    { "source": "/manage", "destination": "/index.html" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/wallpaper/(.*)", "destination": "/api/img/wallpaper/$1" },
+    { "source": "/cover/(.*)", "destination": "/api/img/cover/$1" },
+    { "source": "/manage", "destination": "/index.html" }
   ]
 }

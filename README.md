@@ -1,15 +1,13 @@
-
-
-# ImgBed - 现代化个人图床
+# PCBed - 现代化个人图床
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black)](https://vercel.com)
 [![React](https://img.shields.io/badge/React-18-blue)](https://reactjs.org)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC)](https://tailwindcss.com)
 
-> 基于 Vercel + GitHub 私有仓库的现代化个人图床服务，支持横屏/竖屏分类上传、批量上传、自动压缩、随机图片 API 等功能。
+> 基于 Vercel + GitHub 私有仓库的现代化个人图床服务，支持横屏/竖屏分类上传、批量上传、自动压缩、随机图片 API、图片管理后台等功能。
 
-**[在线演示](https://imgbed-one.vercel.app)** | **[GitHub 仓库](https://github.com/chnbsdan/imgbed)**
+**[在线演示](https://pcbed.vercel.app)** | **[GitHub 仓库](https://github.com/chnbsdan/pcbed)**
 
 ---
 
@@ -20,63 +18,68 @@
 - 📂 **分类管理** - 支持横屏（wallpaper）和竖屏（cover）两种分类
 - 📤 **批量上传** - 多文件选择、拖拽上传，自动压缩大图
 - 🔒 **私有仓库** - 图片存储在 GitHub 私有仓库中，安全可控
-- 🌐 **代理访问** - 通过 `/wallpaper/` 和 `/cover/` 代理访问图片
+- 🌐 **代理访问** - 通过 `/api/image?path=` 统一代理访问图片
 
-### 高级功能
-- 📊 **统计信息** - 实时显示各类图片数量
-- 📋 **图片列表** - 查看所有图片及分类
-- 📦 **JSON 格式** - 返回随机图片的 JSON 信息
-- 🎨 **自动压缩** - 超过 3MB 的图片自动压缩
-- 🔗 **外部图片支持** - 通过 JSON 文件管理外部图片链接
-- 🖼️ **毛玻璃界面** - 现代化毛玻璃效果设计
-- 📱 **响应式布局** - 完美适配 PC、平板、手机
+### 管理后台功能
+- 🔐 **密码保护** - 管理页面需要密码登录，安全可控
+- 🖼️ **图片预览** - 网格视图展示所有图片，支持点击放大
+- 📋 **一键复制** - 点击复制图片链接（自动补全域名）
+- 🗑️ **删除图片** - 网页上直接删除，同步到 GitHub 仓库
+- 📊 **分页浏览** - 每页 64 张图片，支持翻页
+- 📁 **目录树** - 左侧显示横屏/竖屏分类及图片数量
+- 📱 **移动端适配** - 电脑端左侧固定目录，手机端汉堡菜单
+
+### 图片格式转换
+- 🔄 **WebP 转换** - 上传时可选择自动转换为 WebP 格式
+- 📷 **原格式保留** - 不转换时保持原格式上传
+- ⚡ **自动压缩** - 超过 3MB 的图片自动压缩
 
 ### 界面特性
 - 🎲 **随机背景** - 每次刷新页面背景随机变化
+- 🌫️ **毛玻璃效果** - 现代化毛玻璃界面设计
 - 🖱️ **一键复制** - 点击复制图片链接
-- 👁️ **图片预览** - 上传后可直接预览
+- 👁️ **图片预览** - 上传后可直接预览，管理页面点击放大
 - 🔄 **换背景按钮** - 点击换背景，只从横屏图片中随机获取
-- 🎨 **天蓝色悬停** - 上传区域鼠标悬停变天蓝色
+- 🎨 **响应式布局** - 完美适配 PC、平板、手机
 
 ---
 
 ## 📁 项目结构
 
 ```
-imgbed/
+pcbed/
 ├── api/                        # Vercel Serverless Functions
-│   ├── img/
-│   │   └── [filename].js      # 图片代理服务
-│   ├── random.js              # 随机图片接口（全部分类）
+│   ├── admin/
+│   │   ├── list.js            # 图片列表 API
+│   │   └── delete.js          # 图片删除 API
+│   ├── image.js               # 统一图片代理 API
+│   ├── random.js              # 随机图片接口
 │   ├── wallpaper.js           # 横屏图片接口
 │   ├── cover.js               # 竖屏图片接口
 │   ├── json.js                # JSON 格式接口
 │   ├── list.js                # 图片列表接口
 │   ├── stats.js               # 统计信息接口
-│   ├── upload.js              # 图片上传接口
-│   └── external.js            # 外部图片读取接口
-├── src/                       # React 前端源码
+│   └── upload.js              # 图片上传接口
+├── src/
 │   ├── components/            # UI 组件
-│   │   ├── Header.jsx         # 头部组件
-│   │   ├── StatsCard.jsx      # 统计卡片
-│   │   ├── ApiSection.jsx     # API 接口展示
-│   │   ├── UploadArea.jsx     # 上传区域
-│   │   ├── UploadResult.jsx   # 上传结果
-│   │   └── Footer.jsx         # 页脚组件
+│   │   ├── Header.jsx
+│   │   ├── StatsCard.jsx
+│   │   ├── ApiSection.jsx
+│   │   ├── UploadArea.jsx
+│   │   ├── UploadResult.jsx
+│   │   └── Footer.jsx
+│   ├── pages/
+│   │   └── Manage.jsx         # 图片管理页面（含移动端适配）
 │   ├── lib/
 │   │   └── api.js             # API 调用封装
-│   ├── App.jsx                # 主应用
-│   ├── main.jsx               # 入口文件
-│   └── index.css              # 全局样式
+│   ├── App.jsx
+│   ├── main.jsx
+│   └── index.css
 ├── public/
-│   └── favicon.ico            # 网站图标
-├── index.html                 # HTML 模板
-├── package.json               # 依赖配置
-├── vite.config.js             # Vite 配置
-├── tailwind.config.js         # Tailwind CSS 配置
-├── postcss.config.js          # PostCSS 配置
-├── vercel.json                # Vercel 路由配置
-└── README.md                  # 项目说明
+├── index.html
+├── package.json
+├── vercel.json
+└── README.md
 ```
 
 ---
@@ -85,42 +88,37 @@ imgbed/
 
 | 接口 | 方法 | 说明 |
 |------|------|------|
-| `/api/random` | GET | 随机返回一张图片（全部分类 + 外部图片） |
-| `/api/wallpaper` | GET | 随机返回横屏图片（仅 wallpaper 文件夹 + 对应外部图片） |
-| `/api/cover` | GET | 随机返回竖屏图片（仅 cover 文件夹 + 对应外部图片） |
+| `/api/random` | GET | 随机返回一张图片（全部分类） |
+| `/api/wallpaper` | GET | 随机返回横屏图片 |
+| `/api/cover` | GET | 随机返回竖屏图片 |
 | `/api/json` | GET | 返回随机图片的 JSON 信息 |
 | `/api/list` | GET | 返回所有图片列表（按分类分组） |
 | `/api/stats` | GET | 返回统计信息（各分类图片数量） |
 | `/api/upload` | POST | 上传图片（multipart/form-data） |
-| `/wallpaper/:filename` | GET | 代理访问横屏图片 |
-| `/cover/:filename` | GET | 代理访问竖屏图片 |
+| `/api/image` | GET | 代理访问图片（参数：path=分类/文件名） |
+| `/api/admin/list` | GET | 管理后台图片列表（需要密码） |
+| `/api/admin/delete` | POST | 删除图片（需要密码） |
 
 ### 使用示例
 
 ```bash
 # 随机获取图片
-curl https://tt.hangdn.com/api/random
+curl https://pcbed.vercel.app/api/random
 
 # 随机获取横屏图片
-curl https://tt.hangdn.com/api/wallpaper
+curl https://pcbed.vercel.app/api/wallpaper
 
 # 随机获取竖屏图片
-curl https://tt.hangdn.com/api/cover
-
-# 获取 JSON 格式
-curl https://tt.hangdn.com/api/json
+curl https://pcbed.vercel.app/api/cover
 
 # 获取统计信息
-curl https://tt.hangdn.com/api/stats
-
-# 获取图片列表
-curl https://tt.hangdn.com/api/list
+curl https://pcbed.vercel.app/api/stats
 
 # 上传图片
-curl -X POST -F "file=@image.jpg" -F "folder=wallpaper" https://tt.hangdn.com/api/upload
+curl -X POST -F "file=@image.jpg" -F "folder=wallpaper" https://pcbed.vercel.app/api/upload
 
-# 直接访问图片
-https://tt.hangdn.com/wallpaper/20260610_image.jpg
+# 代理访问图片
+https://pcbed.vercel.app/api/image?path=wallpaper/20260612_image.jpg
 ```
 
 ### JSON 返回示例
@@ -128,8 +126,8 @@ https://tt.hangdn.com/wallpaper/20260610_image.jpg
 ```json
 {
   "code": "200",
-  "imgurl": "https://tt.hangdn.com/api/random",
-  "source": "https://raw.githubusercontent.com/chnbsdan/imgbed-storage/main/wallpaper/20260610_image.jpg",
+  "imgurl": "https://pcbed.vercel.app/api/random",
+  "source": "https://raw.githubusercontent.com/chnbsdan/pcbed/main/wallpaper/20260612_image.jpg",
   "total": 128
 }
 ```
@@ -162,7 +160,7 @@ https://tt.hangdn.com/wallpaper/20260610_image.jpg
 |--------|------|------|
 | `GITHUB_TOKEN` | GitHub Personal Access Token（需 `repo` 权限） | ✅ 是 |
 | `GITHUB_USER` | GitHub 用户名 | 可选（默认 chnbsdan） |
-| `GITHUB_REPO` | 存储图片的仓库名 | 可选（默认 imgbed-storage） |
+| `GITHUB_REPO` | 存储图片的仓库名 | 可选（默认 pcbed） |
 
 ### 获取 GitHub Token
 
@@ -177,52 +175,34 @@ https://tt.hangdn.com/wallpaper/20260610_image.jpg
 
 ### 1. 创建 GitHub 图片存储仓库
 
-创建一个新的私有仓库用于存储图片，例如 `imgbed-storage`：
+创建一个新的私有仓库用于存储图片，例如 `pcbed`：
 
 ```
-imgbed-storage/
+pcbed/
 ├── wallpaper/   # 横屏图片存放目录
-├── cover/       # 竖屏图片存放目录
-└── external.json # 外部图片配置文件（可选）
+└── cover/       # 竖屏图片存放目录
 ```
 
-### 2. 配置外部图片（可选）
-
-在 `imgbed-storage` 仓库根目录创建 `external.json`：
-
-```json
-{
-  "wallpaper": [
-    "https://example.com/landscape1.jpg",
-    "https://example.com/landscape2.jpg"
-  ],
-  "cover": [
-    "https://example.com/portrait1.jpg",
-    "https://example.com/portrait2.jpg"
-  ]
-}
-```
-
-### 3. Fork 或克隆本项目
+### 2. Fork 或克隆本项目
 
 ```bash
-git clone https://github.com/chnbsdan/imgbed.git
-cd imgbed
+git clone https://github.com/chnbsdan/pcbed.git
+cd pcbed
 ```
 
-### 4. 安装依赖
+### 3. 安装依赖
 
 ```bash
 npm install
 ```
 
-### 5. 本地开发测试
+### 4. 本地开发测试
 
 ```bash
 npm run dev
 ```
 
-### 6. 部署到 Vercel
+### 5. 部署到 Vercel
 
 **方法一：使用 Vercel CLI**
 
@@ -235,19 +215,37 @@ vercel --prod
 
 1. 访问 [Vercel](https://vercel.com)
 2. 点击 **Add New** → **Project**
-3. 导入你的 GitHub 仓库
+3. 导入你的 GitHub 仓库 `chnbsdan/pcbed`
 4. 在 **Environment Variables** 中添加 `GITHUB_TOKEN`
 5. 点击 **Deploy**
 
-### 7. 绑定自定义域名（可选）
+### 6. 绑定自定义域名（可选）
 
 1. 在 Vercel 项目设置中进入 **Domains**
-2. 添加你的域名（如 `tt.hangdn.com`）
+2. 添加你的域名（如 `pcbed.hangdn.com`）
 3. 在你的 DNS 服务商添加 CNAME 记录：
    - 类型：`CNAME`
    - 名称：你的子域名
    - 目标：`cname.vercel-dns.com`
-   - 代理状态：**关闭**（灰色云朵）
+
+---
+
+## 🔐 管理后台
+
+访问 `/manage` 进入管理后台，需要输入密码。
+
+**默认密码**：`your-password`（请在 `src/pages/Manage.jsx` 中修改）
+
+### 管理后台功能
+
+| 功能 | 说明 |
+|------|------|
+| 图片预览 | 网格视图展示，支持点击放大 |
+| 复制链接 | 一键复制完整域名链接 |
+| 删除图片 | 确认后删除，同步到 GitHub |
+| 分类筛选 | 横屏/竖屏分类切换 |
+| 分页浏览 | 每页 64 张，支持翻页 |
+| 移动端适配 | 汉堡菜单，响应式布局 |
 
 ---
 
@@ -256,11 +254,11 @@ vercel --prod
 ### 主要界面特性
 - 🌫️ **毛玻璃外框** - 所有卡片统一毛玻璃效果
 - 📊 **统计卡片** - 紧凑横排设计，节省空间
-- 🔘 **换背景按钮** - 绿色背景，悬停变亮
+- 🔘 **换背景按钮** - 绿色背景，悬停变亮，只从横屏获取
 - 📤 **上传区域** - 高度增加，悬停变天蓝色
 - 🖱️ **一键复制** - 点击复制图片链接
-- 👁️ **图片预览** - 上传后直接预览
-- 🔗 **左上角 LOGO** - 点击跳转 GitHub 仓库
+- 👁️ **图片预览** - 上传后直接预览，管理页面点击放大
+- 📱 **移动端适配** - 完美适配 PC、平板、手机
 
 ### 按钮颜色
 | 按钮 | 默认颜色 | 悬停效果 |
@@ -280,7 +278,7 @@ vercel --prod
 日期_原文件名.扩展名
 ```
 
-示例：`20260610_风景照片.jpg`
+示例：`20260612_风景照片.jpg`
 
 - 日期格式：`YYYYMMDD`
 - 原文件名中的特殊字符会被替换为 `_`
@@ -314,13 +312,15 @@ vercel --prod
 
 ## 🔄 更新日志
 
-### v2.0 (2026-06-11)
-- ✨ 新增外部图片 JSON 管理，支持按分类配置
-- 🎨 优化界面：毛玻璃效果、紧凑统计卡片
-- 🖱️ 换背景按钮移至上传区域，只从横屏获取
-- 🎨 上传区域高度增加，悬停变天蓝色
-- 🔧 修复图片代理 Content-Type 问题
-- 📱 优化移动端响应式布局
+### v2.0 (2026-06-12)
+- ✨ 新增图片管理后台（预览、复制、删除）
+- 📱 移动端适配，汉堡菜单导航
+- 🖼️ 响应式网格，每页 64 张
+- 🔄 统一图片代理 API `/api/image`
+- 🎨 优化界面：左侧目录树、毛玻璃效果
+- 🔐 管理页面密码保护
+- 📋 复制链接自动补全域名
+- 🔄 上传时可选 WebP 转换
 
 ### v1.0 (2026-06-10)
 - 🎉 初始版本发布
@@ -335,13 +335,12 @@ vercel --prod
 
 本项目采用 [MIT 许可证](LICENSE)
 
-
 ---
 
 ## 🔗 相关链接
 
-- [GitHub 仓库](https://github.com/chnbsdan/imgbed)
-- [在线演示](https://imgbed-one.vercel.app)
+- [GitHub 仓库](https://github.com/chnbsdan/pcbed)
+- [在线演示](https://pcbed.vercel.app)
 - [Vercel 部署](https://vercel.com)
 - [GitHub Token 申请](https://github.com/settings/tokens)
 
@@ -356,13 +355,21 @@ vercel --prod
 
 ## Star History
 
-<a href="https://www.star-history.com/?repos=chnbsdan/imgbed&type=date&legend=top-left">
+<a href="https://www.star-history.com/?repos=chnbsdan/pcbed&type=date&legend=top-left">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=chnbsdan/imgbed&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=chnbsdan/imgbed&type=date&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=chnbsdan/imgbed&type=date&legend=top-left" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=chnbsdan/pcbed&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=chnbsdan/pcbed&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=chnbsdan/pcbed&type=date&legend=top-left" />
  </picture>
 </a>
+```
 
 ---
 
+## 🚀 部署
+
+```bash
+git add README.md
+git commit -m "docs: 更新 README.md 为 pcbed 项目文档"
+git push
+```

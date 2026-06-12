@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react'
 
 export default function Footer() {
-  // 设置一个起始时间戳（请替换为你自己的网站上线时间）
-  // 格式：年,月,日,时,分,秒 (月份从0开始，所以5代表6月)
-  const startDate = new Date(2026, 5, 12, 0, 0, 0) // 2026年6月12日 00:00:00
+  // 设置为 100 天前的日期（2026年3月4日前后，根据当天自动计算）
+  // 这样显示的就是从 100 天开始累加
+  const startDate = new Date()
+  startDate.setDate(startDate.getDate() - 100)  // 自动设为 100 天前
+  startDate.setHours(0, 0, 0, 0)  // 归零到当天 00:00:00
+  
   const [timeElapsed, setTimeElapsed] = useState({
-    days: 0,
+    days: 100,  // 初始显示 100 天
     hours: 0,
     minutes: 0,
     seconds: 0
@@ -23,9 +26,9 @@ export default function Footer() {
       const seconds = Math.floor((diff % (60000)) / 1000)
 
       setTimeElapsed({ days, hours, minutes, seconds })
-    }, 1000) // 每秒更新一次
+    }, 1000)
 
-    return () => clearInterval(timer) // 组件卸载时清除定时器
+    return () => clearInterval(timer)
   }, [startDate])
 
   return (
@@ -38,13 +41,18 @@ export default function Footer() {
       </p>
       
       {/* 稳定运行时间 */}
-      <p className="mt-3 text-white/60 text-xs">
+      <p className="mt-3 text-white/60 text-xs flex items-center justify-center gap-1">
         本站已稳定运行
         <span className="text-white/80 font-mono mx-1">{timeElapsed.days}</span>天
         <span className="text-white/80 font-mono mx-1">{timeElapsed.hours}</span>小时
         <span className="text-white/80 font-mono mx-1">{timeElapsed.minutes}</span>分钟
         <span className="text-white/80 font-mono mx-1">{timeElapsed.seconds}</span>秒
-        <span className="ml-1">| 当前服务器运行正常 ✓</span>
+        <span className="ml-1">| 服务器运行正常</span>
+        {/* 绿色闪烁圆点 */}
+        <span className="relative flex h-2 w-2">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+        </span>
       </p>
 
       <p className="mt-2 text-white/80 text-xs">

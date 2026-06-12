@@ -1,4 +1,4 @@
-// src/pages/Manage.jsx - 图片管理页面（完整版）
+// src/pages/Manage.jsx - 图片管理页面（左侧目录树 + 分页网格）
 import React, { useState, useEffect } from 'react'
 import { fetchImageList, copyToClipboard } from '../lib/api'
 
@@ -12,6 +12,10 @@ export default function Manage() {
   const [activeTab, setActiveTab] = useState('wallpaper')
   const [copiedId, setCopiedId] = useState(null)
   
+  // 分页状态
+  const [currentPage, setCurrentPage] = useState(1)
+  const pageSize = 64  // 每页 8行 x 8列 = 64 张
+  
   const [previewImage, setPreviewImage] = useState(null)
   const [deletingId, setDeletingId] = useState(null)
 
@@ -24,10 +28,8 @@ export default function Manage() {
     return `${baseUrl}/api/image?path=${img.folder}/${img.name}`
   }
 
-  // 验证密码
   const handleLogin = (e) => {
     e.preventDefault()
-    // ⚠️ 请修改下面的密码为你自己的密码
     if (password === 'admin123') {
       setIsAuthenticated(true)
       setPasswordError(false)
@@ -51,18 +53,14 @@ export default function Manage() {
   }
 
   const handleCopy = (url, name, event) => {
-    if (event) {
-      event.stopPropagation()
-    }
+    if (event) event.stopPropagation()
     copyToClipboard(url)
     setCopiedId(name)
     setTimeout(() => setCopiedId(null), 2000)
   }
 
   const handleDelete = async (img, folder, event) => {
-    if (event) {
-      event.stopPropagation()
-    }
+    if (event) event.stopPropagation()
     
     if (!confirm(`确定要删除 "${img.name}" 吗？\n\n⚠️ 此操作不可恢复！`)) {
       return
@@ -98,8 +96,19 @@ export default function Manage() {
     }
   }
 
+  // 切换分类时重置页码
+  const handleTabChange = (tab) => {
+    setActiveTab(tab)
+    setCurrentPage(1)
+  }
+
   const currentImages = images[activeTab] || []
   const totalCount = currentImages.length
+  const totalPages = Math.ceil(totalCount / pageSize)
+  
+  // 当前页显示的图片
+  const startIndex = (currentPage - 1) * pageSize
+  const paginatedImages = currentImages.slice(startIndex, startIndex + pageSize)
 
   // 未登录时显示密码输入界面
   if (!isAuthenticated) {
@@ -174,114 +183,210 @@ export default function Manage() {
         </button>
       </div>
 
-      <div className="max-w-6xl mx-auto mt-16">
-        {/* 头部 */}
-        <div className="text-center mb-8">
-          <i className="fas fa-images text-5xl text-white/70 mb-3"></i>
-          <h1 className="text-3xl font-bold text-white mb-2">图片管理</h1>
-          <p className="text-white/60">共 {totalCount} 张图片</p>
+      <div className="max-w-7xl mx-auto mt-16 flex gap-6">
+        {/* ========= 左侧目录树 ========= */}
+        <div className="w-64 flex-shrink-0">
+          <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 overflow-hidden sticky top-20">
+            <div className="p-4 border-b border-white/20">
+              <div className="flex items-center gap-2 text-white font-medium">
+                <i className="fas fa-folder-tree"></i>
+                <span>图片库</span>
+              </div>
+            </div>
+            <div className="p-2">
+              {/* 横屏目录 */}
+              <div
+                onClick={() => handleTabChange('wallpaper')}
+                className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition ${
+                  activeTab === 'wallpaper'
+                    ? 'bg-blue-600/50 text-white'
+                    : 'text-white/70 hover:bg-white/10 hover:text-white'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <i className={`fas ${activeTab === 'wallpaper' ? 'fa-folder-open' : 'fa-folder'}`}></i>
+                  <span className="text-sm">横屏图片</span>
+                </div>
+                <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">
+                  {images.wallpaper.length}
+                </span>
+              </div>
+              
+              {/* 竖屏目录 */}
+              <div
+                onClick={() => handleTabChange('cover')}
+                className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition ${
+                  activeTab === 'cover'
+                    ? 'bg-purple-600/50 text-white'
+                    : 'text-white/70 hover:bg-white/10 hover:text-white'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <i className={`fas ${activeTab === 'cover' ? 'fa-folder-open' : 'fa-folder'}`}></i>
+                  <span className="text-sm">竖屏图片</span>
+                </div>
+                <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">
+                  {images.cover.length}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* 分类标签 */}
-        <div className="flex justify-center gap-4 mb-6">
-          <button
-            onClick={() => setActiveTab('wallpaper')}
-            className={`px-6 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
-              activeTab === 'wallpaper'
-                ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg'
-                : 'bg-white/10 text-white/70 hover:bg-white/20'
-            }`}
-          >
-            <i className="fas fa-arrows-alt"></i>
-            横屏 ({images.wallpaper.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('cover')}
-            className={`px-6 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
-              activeTab === 'cover'
-                ? 'bg-gradient-to-r from-purple-600 to-purple-500 text-white shadow-lg'
-                : 'bg-white/10 text-white/70 hover:bg-white/20'
-            }`}
-          >
-            <i className="fas fa-mobile-alt"></i>
-            竖屏 ({images.cover.length})
-          </button>
-        </div>
-
-        {/* 图片网格 */}
-        {loading ? (
-          <div className="flex justify-center items-center py-20">
-            <i className="fas fa-spinner fa-pulse text-3xl text-white/50"></i>
-          </div>
-        ) : currentImages.length === 0 ? (
-          <div className="text-center py-20 bg-white/5 rounded-xl backdrop-blur-sm">
-            <i className="fas fa-folder-open text-5xl text-white/30 mb-3"></i>
-            <p className="text-white/50">暂无图片</p>
-            <a href="/" className="inline-block mt-4 text-blue-400 hover:text-blue-300 flex items-center gap-1">
-              <i className="fas fa-upload"></i>
-              去上传图片 →
-            </a>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {currentImages.map((img, idx) => {
-              const proxyUrl = getProxyUrl(img)
-              return (
-                <div
-                  key={img.sha || idx}
-                  className="group bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden border border-white/20 hover:border-white/40 transition-all hover:scale-105 hover:shadow-xl"
-                >
-                  <div 
-                    className="aspect-square bg-black/30 overflow-hidden cursor-pointer relative"
-                    onClick={() => setPreviewImage(img)}
+        {/* ========= 右侧内容区 ========= */}
+        <div className="flex-1">
+          {/* 标题栏 */}
+          <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-4 mb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-white font-medium flex items-center gap-2">
+                  <i className={`fas ${activeTab === 'wallpaper' ? 'fa-arrows-alt' : 'fa-mobile-alt'}`}></i>
+                  {activeTab === 'wallpaper' ? '横屏图片' : '竖屏图片'}
+                </h2>
+                <p className="text-white/40 text-xs mt-1">
+                  共 {totalCount} 张图片 · 第 {currentPage}/{totalPages || 1} 页
+                </p>
+              </div>
+              {/* 分页控件 */}
+              {totalPages > 1 && (
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="px-2 py-1 rounded bg-white/10 text-white/60 hover:bg-white/20 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition"
                   >
-                    <img
-                      src={img.url}
-                      alt={img.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                      loading="lazy"
-                      onError={(e) => {
-                        e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text x="50" y="50" text-anchor="middle" dy=".3em" fill="%23ccc">?</text></svg>'
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                      <i className="fas fa-search-plus text-white text-xl"></i>
-                    </div>
-                  </div>
-                  
-                  <div className="p-2">
-                    <p className="text-white/80 text-xs truncate" title={img.name}>
-                      {img.name}
-                    </p>
-                    <div className="flex items-center justify-between mt-2">
-                      <span className="text-[10px] text-white/40 flex items-center gap-1">
-                        {img.source === 'external' ? <i className="fas fa-globe"></i> : <i className="fas fa-database"></i>}
-                        {img.source === 'external' ? '外部' : '本地'}
-                      </span>
-                      <div className="flex gap-1">
-                        <button
-                          onClick={(e) => handleCopy(proxyUrl, img.name, e)}
-                          className="text-white/60 hover:text-green-400 transition text-xs flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-white/10"
-                          title="复制链接"
-                        >
-                          {copiedId === img.name ? <i className="fas fa-check"></i> : <i className="fas fa-copy"></i>}
-                        </button>
-                        <button
-                          onClick={(e) => handleDelete(img, activeTab, e)}
-                          disabled={deletingId === img.name}
-                          className="text-white/60 hover:text-red-400 transition text-xs flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-white/10 disabled:opacity-50"
-                          title="删除图片"
-                        >
-                          {deletingId === img.name ? <i className="fas fa-spinner fa-pulse"></i> : <i className="fas fa-trash-alt"></i>}
-                        </button>
+                    <i className="fas fa-chevron-left text-xs"></i>
+                  </button>
+                  <span className="px-3 py-1 rounded bg-white/20 text-white text-xs">
+                    {currentPage} / {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="px-2 py-1 rounded bg-white/10 text-white/60 hover:bg-white/20 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition"
+                  >
+                    <i className="fas fa-chevron-right text-xs"></i>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 图片网格 - 每行8个，每页8行 = 64个 */}
+          {loading ? (
+            <div className="flex justify-center items-center py-20 bg-white/5 rounded-xl">
+              <i className="fas fa-spinner fa-pulse text-3xl text-white/50"></i>
+            </div>
+          ) : paginatedImages.length === 0 ? (
+            <div className="text-center py-20 bg-white/5 rounded-xl backdrop-blur-sm">
+              <i className="fas fa-folder-open text-5xl text-white/30 mb-3"></i>
+              <p className="text-white/50">暂无图片</p>
+              <a href="/" className="inline-block mt-4 text-blue-400 hover:text-blue-300 flex items-center gap-1">
+                <i className="fas fa-upload"></i>
+                去上传图片 →
+              </a>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-8 gap-2">
+                {paginatedImages.map((img, idx) => {
+                  const proxyUrl = getProxyUrl(img)
+                  return (
+                    <div
+                      key={img.sha || idx}
+                      className="group bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden border border-white/20 hover:border-white/40 transition-all hover:scale-105 hover:shadow-lg"
+                    >
+                      {/* 图片 - 小尺寸 */}
+                      <div 
+                        className="aspect-square bg-black/30 overflow-hidden cursor-pointer relative"
+                        onClick={() => setPreviewImage(img)}
+                      >
+                        <img
+                          src={img.url}
+                          alt={img.name}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                          loading="lazy"
+                          onError={(e) => {
+                            e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text x="50" y="50" text-anchor="middle" dy=".3em" fill="%23ccc">?</text></svg>'
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                          <i className="fas fa-search-plus text-white text-xs"></i>
+                        </div>
+                      </div>
+                      
+                      {/* 图片信息 - 精简 */}
+                      <div className="p-1">
+                        <p className="text-white/60 text-[10px] truncate" title={img.name}>
+                          {img.name}
+                        </p>
+                        <div className="flex items-center justify-between mt-1">
+                          <span className="text-[8px] text-white/30">
+                            {img.source === 'external' ? '🌐' : '📦'}
+                          </span>
+                          <div className="flex gap-0.5">
+                            <button
+                              onClick={(e) => handleCopy(proxyUrl, img.name, e)}
+                              className="text-white/50 hover:text-green-400 transition text-[10px] px-1"
+                              title="复制链接"
+                            >
+                              {copiedId === img.name ? <i className="fas fa-check"></i> : <i className="fas fa-copy"></i>}
+                            </button>
+                            <button
+                              onClick={(e) => handleDelete(img, activeTab, e)}
+                              disabled={deletingId === img.name}
+                              className="text-white/50 hover:text-red-400 transition text-[10px] px-1 disabled:opacity-30"
+                              title="删除"
+                            >
+                              {deletingId === img.name ? <i className="fas fa-spinner fa-pulse"></i> : <i className="fas fa-trash-alt"></i>}
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )
+                })}
+              </div>
+              
+              {/* 底部分页 */}
+              {totalPages > 1 && (
+                <div className="flex justify-center gap-1 mt-6">
+                  <button
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1 rounded bg-white/10 text-white/60 hover:bg-white/20 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition text-sm"
+                  >
+                    首页
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1 rounded bg-white/10 text-white/60 hover:bg-white/20 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition text-sm"
+                  >
+                    上一页
+                  </button>
+                  <span className="px-4 py-1 rounded bg-white/20 text-white text-sm">
+                    {currentPage} / {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1 rounded bg-white/10 text-white/60 hover:bg-white/20 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition text-sm"
+                  >
+                    下一页
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1 rounded bg-white/10 text-white/60 hover:bg-white/20 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition text-sm"
+                  >
+                    末页
+                  </button>
                 </div>
-              )
-            })}
-          </div>
-        )}
+              )}
+            </>
+          )}
+        </div>
       </div>
 
       {/* 图片预览弹窗 */}

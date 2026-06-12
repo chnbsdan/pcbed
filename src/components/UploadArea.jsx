@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react'
 
-export default function UploadArea({ onUpload, isLoading, convertToWebp, onConvertChange }) {
+export default function UploadArea({ onUpload, isLoading, convertFormat, onFormatChange }) {
   const [dragOver, setDragOver] = useState(false)
   const [folder, setFolder] = useState('wallpaper')
   const [bgRefresh, setBgRefresh] = useState(false)  // 换背景按钮状态
@@ -36,11 +36,20 @@ export default function UploadArea({ onUpload, isLoading, convertToWebp, onConve
     }
   }
 
+  // 获取格式显示的文本
+  const getFormatLabel = () => {
+    switch (convertFormat) {
+      case 'webp': return 'WebP'
+      case 'avif': return 'AVIF'
+      default: return null
+    }
+  }
+
   return (
     <div className="mb-4">
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
         <h3 className="font-semibold text-green-500 text-sm flex items-center gap-1">
-          <i className="fas fa-upload text-blue-600 text-sm"></i>
+          <i className="fas fa-upload text-orange-600 text-sm"></i>
           上传图片
         </h3>
         <div className="flex items-center gap-2">
@@ -84,26 +93,25 @@ export default function UploadArea({ onUpload, isLoading, convertToWebp, onConve
         </div>
       </div>
 
-      {/* 🆕 WebP 转换选项 */}
+      {/* 格式选择下拉菜单 */}
       <div className="flex justify-center items-center mb-4">
-        <label className="flex items-center gap-2 cursor-pointer group">
-          <input
-            type="checkbox"
-            checked={convertToWebp || false}
-            onChange={(e) => onConvertChange?.(e.target.checked)}
-            className="w-4 h-4 rounded border-gray-300 bg-white/80 
-                       checked:bg-blue-500 checked:border-blue-500 
-                       focus:ring-2 focus:ring-blue-400 focus:ring-offset-0
-                       cursor-pointer"
-          />
-          <span className="text-white/80 text-sm group-hover:text-white/100 transition">
-            <i className="fas fa-file-image mr-1"></i>
-            自动转换为 WebP 格式
+        <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-lg px-3 py-2">
+          <span className="text-white/70 text-sm">
+            <i className="fas fa-exchange-alt mr-1"></i>
+            图片格式：
           </span>
-          <span className="text-white/40 text-xs hidden sm:inline">
-            (更小体积，相同画质)
-          </span>
-        </label>
+          <select
+            value={convertFormat || 'original'}
+            onChange={(e) => onFormatChange?.(e.target.value)}
+            className="bg-white/20 text-white text-sm rounded-lg px-3 py-1.5 border border-white/30 
+                       focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer
+                       hover:bg-white/30 transition"
+          >
+            <option value="original" className="text-gray-800">📷 保持原格式</option>
+            <option value="webp" className="text-gray-800">🖼️ 转换为 WebP (推荐)</option>
+            <option value="avif" className="text-gray-800">⚡ 转换为 AVIF (体积更小)</option>
+          </select>
+        </div>
       </div>
 
       {/* 上传区域 */}
@@ -121,13 +129,15 @@ export default function UploadArea({ onUpload, isLoading, convertToWebp, onConve
         <i className="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3 block"></i>
         <p className="text-gray-600 text-base mb-2">点击或拖拽图片到此处上传</p>
         <p className="text-xs text-gray-400">支持 JPG、PNG、WebP、GIF、AVIF | 大图自动压缩</p>
-        {/* 🆕 显示转换状态提示 */}
-        {convertToWebp && (
+        
+        {/* 显示当前转换状态 */}
+        {convertFormat !== 'original' && (
           <p className="text-xs text-green-600 mt-2">
-            <i className="fas fa-exchange-alt mr-1"></i>
-            已开启 WebP 转换，上传后将自动转换格式
+            <i className="fas fa-magic mr-1"></i>
+            已开启 {getFormatLabel()} 转换，上传后将自动转换格式
           </p>
         )}
+        
         <p className="text-xs text-blue-500 mt-3">
           当前上传到: {folder === 'wallpaper' ? '📁 横屏 (wallpaper)' : '📁 竖屏 (cover)'}
         </p>

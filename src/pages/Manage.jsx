@@ -1,4 +1,4 @@
-// src/pages/Manage.jsx - 图片管理页面（左侧悬浮目录 + 居中内容区）
+// src/pages/Manage.jsx - 图片管理页面（横屏比例预览图）
 import React, { useState, useEffect } from 'react'
 import { fetchImageList, copyToClipboard } from '../lib/api'
 
@@ -28,7 +28,7 @@ export default function Manage() {
 
   const handleLogin = (e) => {
     e.preventDefault()
-    if (password === 'admin123') {
+    if (password === 'your-password') {
       setIsAuthenticated(true)
       setPasswordError(false)
       loadImages()
@@ -161,9 +161,8 @@ export default function Manage() {
       backgroundAttachment: 'fixed'
     }}>
       {/* ========= 左侧悬浮目录 - 靠左边缘 ========= */}
-      <div className="fixed left-4 top-1/2 -translate-y-1/2 z-40 w-56">
+      <div className="fixed left-4 top-1/2 -translate-y-1/2 z-40 w-60">
         <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 overflow-hidden shadow-xl">
-          {/* 头部 */}
           <div className="p-4 border-b border-white/20 bg-white/5">
             <div className="flex items-center gap-2 text-white font-medium">
               <i className="fas fa-folder-tree"></i>
@@ -171,7 +170,6 @@ export default function Manage() {
             </div>
           </div>
           
-          {/* 导航按钮 */}
           <div className="p-3 border-b border-white/20">
             <a
               href="/"
@@ -189,7 +187,6 @@ export default function Manage() {
             </button>
           </div>
           
-          {/* 分类目录 */}
           <div className="p-2">
             <div
               onClick={() => handleTabChange('wallpaper')}
@@ -228,7 +225,7 @@ export default function Manage() {
         </div>
       </div>
 
-      {/* ========= 右侧内容区 - 居中，与目录分开 ========= */}
+      {/* ========= 右侧内容区 - 居中 ========= */}
       <div className="max-w-7xl mx-auto pl-72">
         {/* 标题栏 */}
         <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-4 mb-6">
@@ -266,7 +263,7 @@ export default function Manage() {
           </div>
         </div>
 
-        {/* 图片网格 - 8x8，预览图更大 */}
+        {/* 图片网格 - 每行6个，横屏比例图片更大 */}
         {loading ? (
           <div className="flex justify-center items-center py-20 bg-white/5 rounded-xl">
             <i className="fas fa-spinner fa-pulse text-3xl text-white/50"></i>
@@ -282,16 +279,17 @@ export default function Manage() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-8 gap-3">
+            <div className="grid grid-cols-6 gap-4">
               {paginatedImages.map((img, idx) => {
                 const proxyUrl = getProxyUrl(img)
                 return (
                   <div
                     key={img.sha || idx}
-                    className="group bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden border border-white/20 hover:border-white/40 transition-all hover:scale-105 hover:shadow-lg"
+                    className="group bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden border border-white/20 hover:border-white/40 transition-all hover:scale-105 hover:shadow-xl"
                   >
+                    {/* 横屏比例 16:9 或 4:3 的预览图 */}
                     <div 
-                      className="aspect-square bg-black/30 overflow-hidden cursor-pointer relative"
+                      className="aspect-video bg-black/30 overflow-hidden cursor-pointer relative"
                       onClick={() => setPreviewImage(img)}
                     >
                       <img
@@ -304,22 +302,24 @@ export default function Manage() {
                         }}
                       />
                       <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                        <i className="fas fa-search-plus text-white text-sm"></i>
+                        <i className="fas fa-search-plus text-white text-xl"></i>
                       </div>
                     </div>
                     
-                    <div className="p-1.5">
-                      <p className="text-white/60 text-[10px] truncate" title={img.name}>
+                    {/* 图片信息 - 更精简 */}
+                    <div className="p-2">
+                      <p className="text-white/60 text-xs truncate" title={img.name}>
                         {img.name}
                       </p>
-                      <div className="flex items-center justify-between mt-1">
-                        <span className="text-[8px] text-white/30">
-                          {img.source === 'external' ? '🌐' : '📦'}
+                      <div className="flex items-center justify-between mt-1.5">
+                        <span className="text-[10px] text-white/30 flex items-center gap-1">
+                          {img.source === 'external' ? <i className="fas fa-globe"></i> : <i className="fas fa-database"></i>}
+                          {img.source === 'external' ? '外部' : '本地'}
                         </span>
-                        <div className="flex gap-0.5">
+                        <div className="flex gap-1">
                           <button
                             onClick={(e) => handleCopy(proxyUrl, img.name, e)}
-                            className="text-white/50 hover:text-green-400 transition text-[10px] px-1 py-0.5 rounded"
+                            className="text-white/50 hover:text-green-400 transition text-xs px-2 py-1 rounded"
                             title="复制链接"
                           >
                             {copiedId === img.name ? <i className="fas fa-check"></i> : <i className="fas fa-copy"></i>}
@@ -327,7 +327,7 @@ export default function Manage() {
                           <button
                             onClick={(e) => handleDelete(img, activeTab, e)}
                             disabled={deletingId === img.name}
-                            className="text-white/50 hover:text-red-400 transition text-[10px] px-1 py-0.5 rounded disabled:opacity-30"
+                            className="text-white/50 hover:text-red-400 transition text-xs px-2 py-1 rounded disabled:opacity-30"
                             title="删除"
                           >
                             {deletingId === img.name ? <i className="fas fa-spinner fa-pulse"></i> : <i className="fas fa-trash-alt"></i>}

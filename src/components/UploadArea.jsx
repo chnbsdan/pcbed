@@ -131,7 +131,8 @@ export default function UploadArea({ onUpload, isLoading, convertToWebp, onConve
         )}
         
         <p className="text-xs text-blue-500 mt-3">
-          当前上传到: {folder === 'wallpaper' ? '📁 横屏 (wallpaper)' : '📁 竖屏 (cover)'}
+        <i className="fas fa-folder-open mr-1"></i>
+             当前上传到: {folder === 'wallpaper' ? '横屏 (wallpaper)' : '竖屏 (cover)'}
         </p>
       </div>
 

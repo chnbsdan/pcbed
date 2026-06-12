@@ -125,7 +125,7 @@ export default function UploadArea({ onUpload, isLoading, convertToWebp, onConve
         {/* 显示当前转换状态 */}
         {convertToWebp && (
           <p className="text-xs text-green-600 mt-2">
-            <i className="fas fa-magic mr-1"></i>
+            <i className="fas fa-exchange-alt mr-1"></i>
             已开启 WebP 转换，上传后将自动转换格式
           </p>
         )}

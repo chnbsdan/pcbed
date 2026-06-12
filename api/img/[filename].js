@@ -1,6 +1,6 @@
-// api/img/[filename].js
+// api/img/[filename].js - 完整版
 const GITHUB_USER = process.env.GITHUB_USER || 'chnbsdan'
-const GITHUB_REPO = process.env.GITHUB_REPO || 'pcbed'
+const GITHUB_REPO = process.env.GITHUB_REPO || 'pcbed'  // ⚠️ 改成你的存储仓库名
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN
 
 // 根据文件扩展名获取正确的 Content-Type
@@ -19,40 +19,48 @@ function getContentType(filename) {
 }
 
 export default async function handler(req, res) {
-  const { filename } = req.query
+  // 获取完整的路径参数，例如 "wallpaper/20260612_202.webp"
+  const fullPath = req.query.filename
   
-  if (!filename) {
+  if (!fullPath) {
     return res.status(400).send('Filename required')
   }
+  
+  // 分割路径，获取文件夹和文件名
+  const parts = fullPath.split('/')
+  const folder = parts[0]  // wallpaper 或 cover
+  const filename = parts.slice(1).join('/')  // 实际文件名
+  
+  // 验证文件夹是否合法
+  if (!['wallpaper', 'cover'].includes(folder)) {
+    return res.status(403).send('Invalid folder')
+  }
+  
+  // 构建 GitHub 原始文件 URL
+  const rawUrl = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/${folder}/${filename}`
   
   // 设置响应头
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Cache-Control', 'public, max-age=86400')
-  // 关键：强制浏览器显示而不是下载
   res.setHeader('Content-Disposition', 'inline')
-  // 关键：手动设置 Content-Type
-  res.setHeader('Content-Type', getContentType(filename))
-  
-  const folders = ['wallpaper', 'cover']
   
   try {
-    for (const folder of folders) {
-      const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${folder}/${filename}`
-      const response = await fetch(apiUrl, {
-        headers: {
-          'Authorization': `Bearer ${GITHUB_TOKEN}`,
-          'Accept': 'application/vnd.github.v3.raw',
-          'User-Agent': 'Vercel-Serverless'
-        }
-      })
-      
-      if (response.ok) {
-        const body = await response.arrayBuffer()
-        return res.send(Buffer.from(body))
-      }
+    const response = await fetch(rawUrl, {
+      headers: GITHUB_TOKEN ? {
+        'Authorization': `Bearer ${GITHUB_TOKEN}`,
+        'User-Agent': 'Vercel-Serverless'
+      } : {}
+    })
+    
+    if (!response.ok) {
+      console.error(`GitHub fetch failed: ${response.status}`)
+      return res.status(404).send('Image not found')
     }
     
-    return res.status(404).send('Image not found')
+    const body = await response.arrayBuffer()
+    const contentType = getContentType(filename)
+    res.setHeader('Content-Type', contentType)
+    res.send(Buffer.from(body))
   } catch (error) {
     console.error('Image proxy error:', error)
     res.status(500).send('Internal error')

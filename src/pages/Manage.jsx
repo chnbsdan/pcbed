@@ -28,7 +28,7 @@ export default function Manage() {
   const handleLogin = (e) => {
     e.preventDefault()
     // ⚠️ 请修改下面的密码为你自己的密码
-    if (password === 'your-password') {
+    if (password === 'admin123') {
       setIsAuthenticated(true)
       setPasswordError(false)
       loadImages()

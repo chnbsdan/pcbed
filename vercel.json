@@ -1,8 +1,7 @@
 {
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/wallpaper/(.*)", "destination": "/api/img/wallpaper/$1" },
-    { "source": "/cover/(.*)", "destination": "/api/img/cover/$1" },
-    { "source": "/manage", "destination": "/index.html" }
+    { "source": "/manage", "destination": "/index.html" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

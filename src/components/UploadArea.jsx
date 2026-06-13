@@ -208,9 +208,9 @@ export default function UploadArea({ onUpload, isLoading, convertToWebp, onConve
                          focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer
                          hover:bg-gray-100 dark:hover:bg-white/30 transition"
             >
-              <option value="70" className="text-gray-800 dark:text-gray-800">📦 高压缩 (70%) - 体积更小</option>
-              <option value="85" className="text-gray-800 dark:text-gray-800">⚖️ 推荐 (85%) - 平衡</option>
-              <option value="100" className="text-gray-800 dark:text-gray-800">✨ 最佳质量 (100%) - 文件较大</option>
+              <option value="70" className="text-gray-800 dark:text-gray-800">高压缩 (70%) — 体积更小</option>
+              <option value="85" className="text-gray-800 dark:text-gray-800">推荐 (85%) — 平衡</option>
+              <option value="100" className="text-gray-800 dark:text-gray-800">最佳质量 (100%) — 文件较大</option>
             </select>
           </div>
         </div>

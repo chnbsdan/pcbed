@@ -46,35 +46,42 @@ function App() {
   }
 
   const compressImage = useCallback((file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.readAsDataURL(file)
-      reader.onload = (e) => {
-        const img = new Image()
-        img.src = e.target.result
-        img.onload = () => {
-          const canvas = document.createElement('canvas')
-          canvas.width = img.width
-          canvas.height = img.height
-          const ctx = canvas.getContext('2d')
-          ctx.drawImage(img, 0, 0)
-          let quality = 0.85
-          let dataUrl = canvas.toDataURL('image/jpeg', quality)
-          let size = dataURLToBlob(dataUrl).size
-          while (size > 3 * 1024 * 1024 && quality > 0.6) {
-            quality -= 0.05
-            dataUrl = canvas.toDataURL('image/jpeg', quality)
-            size = dataURLToBlob(dataUrl).size
-          }
-          const name = file.name.replace(/\.[^/.]+$/, '')
-          const compressed = new File([dataURLToBlob(dataUrl)], `${name}.jpg`, { type: 'image/jpeg' })
-          resolve(compressed)
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = (e) => {
+      const img = new Image()
+      img.src = e.target.result
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        canvas.width = img.width
+        canvas.height = img.height
+        const ctx = canvas.getContext('2d')
+        ctx.drawImage(img, 0, 0)
+        
+        // 从 localStorage 读取压缩质量，默认 85
+        let savedQuality = localStorage.getItem('compressQuality')
+        let quality = savedQuality ? parseInt(savedQuality) / 100 : 0.85
+        
+        let dataUrl = canvas.toDataURL('image/jpeg', quality)
+        let size = dataURLToBlob(dataUrl).size
+        
+        // 如果仍然超过 3MB 且质量 > 0.6，继续降低质量
+        while (size > 3 * 1024 * 1024 && quality > 0.6) {
+          quality -= 0.05
+          dataUrl = canvas.toDataURL('image/jpeg', quality)
+          size = dataURLToBlob(dataUrl).size
         }
-        img.onerror = reject
+        
+        const name = file.name.replace(/\.[^/.]+$/, '')
+        const compressed = new File([dataURLToBlob(dataUrl)], `${name}.jpg`, { type: 'image/jpeg' })
+        resolve(compressed)
       }
-      reader.onerror = reject
-    })
-  }, [])
+      img.onerror = reject
+    }
+    reader.onerror = reject
+  })
+}, [])
 
   const convertToWebP = useCallback((file, quality = 0.85) => {
     return new Promise((resolve, reject) => {

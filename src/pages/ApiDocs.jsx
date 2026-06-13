@@ -1,10 +1,21 @@
-// src/pages/ApiDocs.jsx - 修改返回按钮位置
-import React, { useState } from 'react'
+// src/pages/ApiDocs.jsx - 完整版
+import React, { useState, useEffect } from 'react'
 import { copyToClipboard } from '../lib/api'
 import ThemeToggle from '../components/ThemeToggle'
 
 export default function ApiDocs() {
   const [copiedApi, setCopiedApi] = useState(null)
+  const [isDarkMode, setIsDarkMode] = useState(false)
+
+  // 监听主题变化
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'))
+    })
+    observer.observe(document.documentElement, { attributes: true })
+    setIsDarkMode(document.documentElement.classList.contains('dark'))
+    return () => observer.disconnect()
+  }, [])
 
   const handleCopy = (text, id) => {
     copyToClipboard(text)
@@ -107,14 +118,19 @@ export default function ApiDocs() {
     }
   ]
 
-   return (
-    <div className="min-h-screen py-6 px-4" style={{ 
-      backgroundImage: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      backgroundAttachment: 'fixed'
-    }}>
+  return (
+    <div 
+      className="min-h-screen py-6 px-4" 
+      style={{ 
+        backgroundImage: isDarkMode 
+          ? 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)'
+          : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        backgroundAttachment: 'fixed',
+        transition: 'background-image 0.3s ease'
+      }}
+    >
       {/* 右上角导航栏 */}
       <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
-        {/* 返回首页按钮 */}
         <a 
           href="/" 
           className="bg-white/20 backdrop-blur-sm hover:bg-white/30 transition px-3 py-2 rounded-lg text-white text-sm flex items-center gap-2"
@@ -123,8 +139,6 @@ export default function ApiDocs() {
           <i className="fas fa-arrow-left"></i>
           <span className="hidden sm:inline">返回</span>
         </a>
-        
-        {/* 主题切换按钮 */}
         <ThemeToggle />
       </div>
 
@@ -142,7 +156,6 @@ export default function ApiDocs() {
             const fullUrl = `${baseUrl}${api.path}${api.id === 'image' ? '?path=wallpaper/example.jpg' : ''}`
             return (
               <div key={api.id} className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 overflow-hidden">
-                {/* 接口头部 */}
                 <div className="flex items-center justify-between p-4 border-b border-white/20 bg-white/5">
                   <div className="flex items-center gap-3 flex-wrap">
                     <span className={`px-2 py-1 rounded text-xs font-mono ${
@@ -153,7 +166,6 @@ export default function ApiDocs() {
                     <code className="text-white/90 text-sm font-mono">{api.path}</code>
                   </div>
                   <div className="flex items-center gap-2">
-                    {/* 打开链接按钮 */}
                     <a
                       href={fullUrl}
                       target="_blank"
@@ -163,7 +175,6 @@ export default function ApiDocs() {
                     >
                       <i className="fas fa-external-link-alt"></i>
                     </a>
-                    {/* 复制按钮 */}
                     <button
                       onClick={() => handleCopy(fullUrl, api.id)}
                       className="text-white/60 hover:text-white transition p-1.5 rounded-lg hover:bg-white/10"
@@ -174,7 +185,6 @@ export default function ApiDocs() {
                   </div>
                 </div>
                 
-                {/* 接口内容 */}
                 <div className="p-4 space-y-3">
                   <p className="text-white/70 text-sm">{api.description}</p>
                   
@@ -207,7 +217,7 @@ export default function ApiDocs() {
         {/* 页尾说明 */}
         <div className="text-center mt-8 text-white/40 text-xs">
           <p>所有图片均代理访问，保障私有仓库安全</p>
-          <p className="mt-1">更多信息请访问 <a href="https://github.com/chnbsdan/pcbed" target="_blank" rel="noopener noreferrer" className="text-white/60 hover:text-white">GitHub chnbsdan</a></p>
+          <p className="mt-1">更多信息请访问 <a href="https://github.com/chnbsdan/pcbed" target="_blank" rel="noopener noreferrer" className="text-white/60 hover:text-white">GitHub 仓库</a></p>
         </div>
       </div>
     </div>

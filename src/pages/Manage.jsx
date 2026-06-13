@@ -14,7 +14,7 @@ export default function Manage() {
   const [copiedId, setCopiedId] = useState(null)
   
   const [currentPage, setCurrentPage] = useState(1)
-  const pageSize = 64
+  const pageSize = 32
   
   const [previewImage, setPreviewImage] = useState(null)
   const [deletingId, setDeletingId] = useState(null)

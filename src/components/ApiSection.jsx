@@ -20,8 +20,8 @@ export default function ApiSection() {
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
 
   return (
-    <div className="card p-5 mb-6 animate-slide-up">
-      <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+    <div className="card p-5 mb-6 animate-slide-up bg-white/10 dark:bg-black/20 backdrop-blur-sm rounded-xl border border-white/20">
+      <h3 className="font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
         <i className="fas fa-plug text-blue-500"></i>
         API 接口
       </h3>
@@ -29,21 +29,21 @@ export default function ApiSection() {
         {apis.map((api) => {
           const url = `${baseUrl}${api.path}`
           return (
-            <div key={api.id} className="bg-gray-50 rounded-xl p-3">
+            <div key={api.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-3 border border-gray-200 dark:border-gray-700">
               <div className="flex items-center gap-2 mb-2">
-                <i className={`fas ${api.icon} text-gray-500`}></i>
-                <span className="text-sm font-medium text-gray-700">{api.label}</span>
+                <i className={`fas ${api.icon} text-gray-500 dark:text-gray-400`}></i>
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{api.label}</span>
               </div>
               <div className="flex items-center justify-between gap-2">
-                <code className="text-xs bg-white px-2 py-1 rounded flex-1 truncate">{url}</code>
+                <code className="text-xs bg-white dark:bg-gray-900 px-2 py-1 rounded flex-1 truncate text-gray-700 dark:text-gray-300">{url}</code>
                 <button
                   onClick={() => handleCopy(url, api.id)}
-                  className="p-1.5 hover:bg-gray-200 rounded-lg transition"
+                  className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition"
                 >
                   {copied === api.id ? (
                     <i className="fas fa-check text-green-500"></i>
                   ) : (
-                    <i className="fas fa-copy text-gray-400"></i>
+                    <i className="fas fa-copy text-gray-400 dark:text-gray-500"></i>
                   )}
                 </button>
               </div>

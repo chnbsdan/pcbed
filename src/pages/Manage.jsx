@@ -441,39 +441,32 @@ export default function Manage() {
                 <i className="fas fa-trash-alt"></i>
                 批量删除 ({selectedImages.size})
               </button>
+
               {/* 批量复制按钮 */}
-              <div className="relative">
-                <button
-                  onClick={() => setShowBatchMenu(!showBatchMenu)}
-                  className="px-3 py-1.5 rounded-lg bg-white/20 hover:bg-white/30 text-white text-sm flex items-center gap-2 transition"
-                >
-                  <i className="fas fa-copy"></i>
-                  批量复制
-                  <i className="fas fa-chevron-down text-xs"></i>
-                </button>
-                {showBatchMenu && (
-                  <div className="absolute right-0 mt-2 w-44 bg-gray-800 rounded-lg shadow-lg overflow-hidden z-50 border border-gray-700">
-                    <button
-                      onClick={() => handleBatchCopy('url')}
-                      className="w-full px-4 py-2 text-left text-white hover:bg-gray-700 text-sm flex items-center gap-2"
-                    >
-                      <i className="fas fa-link"></i> 复制链接 (URL)
-                    </button>
-                    <button
-                      onClick={() => handleBatchCopy('markdown')}
-                      className="w-full px-4 py-2 text-left text-white hover:bg-gray-700 text-sm flex items-center gap-2"
-                    >
-                      <i className="fab fa-markdown"></i> 复制 Markdown
-                    </button>
-                    <button
-                      onClick={() => handleBatchCopy('html')}
-                      className="w-full px-4 py-2 text-left text-white hover:bg-gray-700 text-sm flex items-center gap-2"
-                    >
-                      <i className="fab fa-html5"></i> 复制 HTML
-                    </button>
-                  </div>
-                )}
-              </div>
+<div className="relative">
+  <button
+    onClick={() => setShowBatchMenu(!showBatchMenu)}
+    className="px-3 py-1.5 rounded-lg bg-white/20 hover:bg-white/30 text-white text-sm flex items-center gap-2 transition"
+  >
+    <i className="fas fa-copy"></i>
+    批量复制
+    <i className="fas fa-chevron-down text-xs"></i>
+  </button>
+  {showBatchMenu && (
+    <div className="absolute right-0 bottom-full mb-2 w-44 bg-gray-800 rounded-lg shadow-lg overflow-hidden z-[200] border border-gray-700">
+      <button onClick={() => handleBatchCopy('url')} className="w-full px-4 py-2 text-left text-white hover:bg-gray-700 text-sm flex items-center gap-2">
+        <i className="fas fa-link"></i> 复制链接 (URL)
+      </button>
+      <button onClick={() => handleBatchCopy('markdown')} className="w-full px-4 py-2 text-left text-white hover:bg-gray-700 text-sm flex items-center gap-2">
+        <i className="fab fa-markdown"></i> 复制 Markdown
+      </button>
+      <button onClick={() => handleBatchCopy('html')} className="w-full px-4 py-2 text-left text-white hover:bg-gray-700 text-sm flex items-center gap-2">
+        <i className="fab fa-html5"></i> 复制 HTML
+      </button>
+    </div>
+  )}
+</div>
+              
             </div>
           </div>
         )}

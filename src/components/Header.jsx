@@ -11,7 +11,7 @@ export default function Header() {
           Hangdn ImgBed
         </h1>
       </div>
-      <p className="text-white/60 text-xs">
+      <p className="text-white/70 dark:text-white/50 text-xs">
         基于 GitHub 私有仓库的独立图床
       </p>
     </div>

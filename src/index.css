@@ -101,12 +101,14 @@
   background-color: rgba(0, 0, 0, 0.3) !important;
 }
 
-.dark .text-gray-600 {
-  color: #9ca3af !important;
+/* 暗色模式下的统计数字 */
+.dark .text-gray-800 {
+  color: #ffffff !important;
 }
 
-.dark .text-gray-400 {
-  color: #6b7280 !important;
+/* 暗色模式下的卡片背景 */
+.dark .card {
+  background-color: rgba(0, 0, 0, 0.3) !important;
 }
 
 .dark .border-gray-300 {

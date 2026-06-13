@@ -6,23 +6,21 @@ import UploadArea from './components/UploadArea'
 import UploadResult from './components/UploadResult'
 import Footer from './components/Footer'
 import { fetchStats, uploadImage } from './lib/api'
-import Manage from './pages/Manage'  // 🆕 导入管理页面
+import Manage from './pages/Manage'
 
 function App() {
   const [stats, setStats] = useState({ grand_total: 0, github_folders: { wallpaper: 0, cover: 0 }, external_total: 0 })
   const [uploadResults, setUploadResults] = useState([])
   const [isUploading, setIsUploading] = useState(false)
-  const [convertToWebp, setConvertToWebp] = useState(false)  // 是否转换为 WebP
+  const [convertToWebp, setConvertToWebp] = useState(false)
+  const [uploadKey, setUploadKey] = useState(0) // 用于强制刷新
 
-  // 🆕 检查是否在管理页面
   const isManagePage = typeof window !== 'undefined' && window.location.pathname === '/manage'
   
-  // 如果在管理页面，直接返回管理组件
   if (isManagePage) {
     return <Manage />
   }
 
-  // 设置随机背景
   const setRandomBackground = useCallback(() => {
     const img = new Image()
     const url = `/api/random?t=${Date.now()}`
@@ -79,7 +77,6 @@ function App() {
     })
   }, [])
 
-  // 将图片转换为 WebP 格式
   const convertToWebP = useCallback((file, quality = 0.85) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader()
@@ -123,94 +120,82 @@ function App() {
   }
 
   const handleUpload = async (files, folder) => {
-  setIsUploading(true)
-  setUploadResults([])
-  
-  const fileArray = Array.from(files)
-  const totalFiles = fileArray.length
-  let completedCount = 0
-  
-  for (let i = 0; i < fileArray.length; i++) {
-    let file = fileArray[i]
-    const ext = file.name.split('.').pop().toLowerCase()
+    setIsUploading(true)
+    setUploadResults([])
+    setUploadKey(prev => prev + 1) // 强制刷新结果区域
     
-    if (!['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif'].includes(ext)) {
-      // 格式不支持，立即添加失败结果
-      setUploadResults(prev => [...prev, { 
-        success: false, 
-        filename: file.name, 
-        error: '格式不支持', 
-        folder 
-      }])
-      completedCount++
-      continue
-    }
+    const fileArray = Array.from(files)
     
-    // 如果用户选择了转换为 WebP，且不是 gif/avif
-    if (convertToWebp && !['gif', 'avif'].includes(ext)) {
-      try {
-        file = await convertToWebP(file)
-        console.log(`✅ 已转换 ${file.name} 为 WebP`)
-      } catch (err) {
-        console.error('WebP 转换失败:', err)
+    for (let i = 0; i < fileArray.length; i++) {
+      let file = fileArray[i]
+      const ext = file.name.split('.').pop().toLowerCase()
+      
+      if (!['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif'].includes(ext)) {
+        setUploadResults(prev => [...prev, { 
+          success: false, 
+          filename: file.name, 
+          error: '格式不支持', 
+          folder 
+        }])
+        continue
       }
-    }
-    
-    // 大图压缩（WebP 不再重复压缩）
-    if (file.size > 3 * 1024 * 1024 && file.type !== 'image/webp') {
-      try {
-        file = await compressImage(file)
-      } catch (e) {
-        // 压缩失败，继续使用原图
-      }
-    }
-    
-    let retry = 3
-    let uploaded = false
-    
-    while (retry > 0 && !uploaded) {
-      try {
-        const data = await uploadImage(file, folder)
-        if (data.success) {
-          // 成功，立即添加结果
-          setUploadResults(prev => [...prev, { 
-            success: true, 
-            filename: data.filename, 
-            url: data.url, 
-            folder 
-          }])
-          uploaded = true
-        } else {
-          throw new Error(data.error || '上传失败')
-        }
-      } catch (err) {
-        retry--
-        if (retry === 0) {
-          // 失败，立即添加结果
-          setUploadResults(prev => [...prev, { 
-            success: false, 
-            filename: file.name, 
-            error: err.message, 
-            folder 
-          }])
-        } else {
-          await new Promise(r => setTimeout(r, 1000))
+      
+      if (convertToWebp && !['gif', 'avif'].includes(ext)) {
+        try {
+          file = await convertToWebP(file)
+          console.log(`✅ 已转换 ${file.name} 为 WebP`)
+        } catch (err) {
+          console.error('WebP 转换失败:', err)
         }
       }
+      
+      if (file.size > 3 * 1024 * 1024 && file.type !== 'image/webp') {
+        try {
+          file = await compressImage(file)
+        } catch (e) {}
+      }
+      
+      let retry = 3
+      let uploaded = false
+      
+      while (retry > 0 && !uploaded) {
+        try {
+          const data = await uploadImage(file, folder)
+          if (data.success) {
+            setUploadResults(prev => [...prev, { 
+              success: true, 
+              filename: data.filename, 
+              url: data.url, 
+              folder 
+            }])
+            uploaded = true
+          } else {
+            throw new Error(data.error || '上传失败')
+          }
+        } catch (err) {
+          retry--
+          if (retry === 0) {
+            setUploadResults(prev => [...prev, { 
+              success: false, 
+              filename: file.name, 
+              error: err.message, 
+              folder 
+            }])
+          } else {
+            await new Promise(r => setTimeout(r, 1000))
+          }
+        }
+      }
+      
+      if (i < fileArray.length - 1) await new Promise(r => setTimeout(r, 500))
     }
     
-    completedCount++
-    
-    if (i < fileArray.length - 1) await new Promise(r => setTimeout(r, 500))
+    setIsUploading(false)
+    loadStats()
   }
-  
-  setIsUploading(false)
-  loadStats()
-}
 
   return (
     <div className="min-h-screen py-6 px-4 relative">
-      {/* 左上角 LOGO */}
       <a 
         href="https://github.com/chnbsdan/imgbed" 
         target="_blank" 
@@ -224,7 +209,6 @@ function App() {
       <div className="max-w-4xl mx-auto">
         <Header />
         
-        {/* 卡片区域 - 毛玻璃效果 */}
         <div className="space-y-4 backdrop-blur-md bg-white/5 rounded-xl p-4 shadow-xl border border-white/30">
           <StatsCard stats={stats} />
           <ApiSection />
@@ -235,7 +219,7 @@ function App() {
             convertToWebp={convertToWebp}
             onConvertChange={setConvertToWebp}
           />
-          <UploadResult results={uploadResults} />
+          <UploadResult key={uploadKey} results={uploadResults} />
         </div>
         
         <Footer />

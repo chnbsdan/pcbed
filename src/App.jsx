@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import Header from './components/Header'
 import StatsCard from './components/StatsCard'
 import ApiSection from './components/ApiSection'
@@ -6,19 +6,16 @@ import UploadArea from './components/UploadArea'
 import UploadResult from './components/UploadResult'
 import Footer from './components/Footer'
 import { fetchStats, uploadImage } from './lib/api'
-import Manage from './pages/Manage'
+import Manage from './pages/Manage'  // 🆕 添加这一行
 
 function App() {
   const [stats, setStats] = useState({ grand_total: 0, github_folders: { wallpaper: 0, cover: 0 }, external_total: 0 })
   const [uploadResults, setUploadResults] = useState([])
   const [isUploading, setIsUploading] = useState(false)
   const [convertToWebp, setConvertToWebp] = useState(false)
-  
-  // 使用 ref 来存储累积的结果，避免闭包问题
-  const resultsRef = useRef([])
 
+  // 🆕 添加管理页面路由判断
   const isManagePage = typeof window !== 'undefined' && window.location.pathname === '/manage'
-  
   if (isManagePage) {
     return <Manage />
   }
@@ -123,10 +120,9 @@ function App() {
 
   const handleUpload = async (files, folder) => {
     setIsUploading(true)
-    // 清空 ref 和 state
-    resultsRef.current = []
     setUploadResults([])
     
+    const results = []
     const fileArray = Array.from(files)
     
     for (let i = 0; i < fileArray.length; i++) {
@@ -134,13 +130,7 @@ function App() {
       const ext = file.name.split('.').pop().toLowerCase()
       
       if (!['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif'].includes(ext)) {
-        resultsRef.current.push({ 
-          success: false, 
-          filename: file.name, 
-          error: '格式不支持', 
-          folder 
-        })
-        setUploadResults([...resultsRef.current])
+        results.push({ success: false, filename: file.name, error: '格式不支持', folder })
         continue
       }
       
@@ -166,14 +156,7 @@ function App() {
         try {
           const data = await uploadImage(file, folder)
           if (data.success) {
-            resultsRef.current.push({ 
-              success: true, 
-              filename: data.filename, 
-              url: data.url, 
-              folder 
-            })
-            console.log('当前结果数量:', resultsRef.current.length)
-            setUploadResults([...resultsRef.current])
+            results.push({ success: true, filename: data.filename, url: data.url, folder })
             uploaded = true
           } else {
             throw new Error(data.error || '上传失败')
@@ -181,19 +164,14 @@ function App() {
         } catch (err) {
           retry--
           if (retry === 0) {
-            resultsRef.current.push({ 
-              success: false, 
-              filename: file.name, 
-              error: err.message, 
-              folder 
-            })
-            setUploadResults([...resultsRef.current])
+            results.push({ success: false, filename: file.name, error: err.message, folder })
           } else {
             await new Promise(r => setTimeout(r, 1000))
           }
         }
       }
       
+      setUploadResults([...results])
       if (i < fileArray.length - 1) await new Promise(r => setTimeout(r, 500))
     }
     
@@ -204,7 +182,7 @@ function App() {
   return (
     <div className="min-h-screen py-6 px-4 relative">
       <a 
-        href="https://github.com/chnbsdan/imgbed" 
+        href="https://github.com/chnbsdan/pcbed" 
         target="_blank" 
         rel="noopener noreferrer"
         className="fixed top-1 left-1 z-50"

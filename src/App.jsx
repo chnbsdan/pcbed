@@ -6,7 +6,8 @@ import UploadArea from './components/UploadArea'
 import UploadResult from './components/UploadResult'
 import Footer from './components/Footer'
 import { fetchStats, uploadImage } from './lib/api'
-import Manage from './pages/Manage'  // 🆕 添加这一行
+import Manage from './pages/Manage'
+import ThemeToggle from './components/ThemeToggle'
 
 function App() {
   const [stats, setStats] = useState({ grand_total: 0, github_folders: { wallpaper: 0, cover: 0 }, external_total: 0 })
@@ -14,7 +15,6 @@ function App() {
   const [isUploading, setIsUploading] = useState(false)
   const [convertToWebp, setConvertToWebp] = useState(false)
 
-  // 🆕 添加管理页面路由判断
   const isManagePage = typeof window !== 'undefined' && window.location.pathname === '/manage'
   if (isManagePage) {
     return <Manage />
@@ -122,15 +122,16 @@ function App() {
     setIsUploading(true)
     setUploadResults([])
     
-    const results = []
     const fileArray = Array.from(files)
+    const allResults = []
     
     for (let i = 0; i < fileArray.length; i++) {
       let file = fileArray[i]
       const ext = file.name.split('.').pop().toLowerCase()
       
       if (!['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif'].includes(ext)) {
-        results.push({ success: false, filename: file.name, error: '格式不支持', folder })
+        allResults.push({ success: false, filename: file.name, error: '格式不支持', folder })
+        setUploadResults([...allResults])
         continue
       }
       
@@ -156,7 +157,8 @@ function App() {
         try {
           const data = await uploadImage(file, folder)
           if (data.success) {
-            results.push({ success: true, filename: data.filename, url: data.url, folder })
+            allResults.push({ success: true, filename: data.filename, url: data.url, folder })
+            setUploadResults([...allResults])
             uploaded = true
           } else {
             throw new Error(data.error || '上传失败')
@@ -164,14 +166,14 @@ function App() {
         } catch (err) {
           retry--
           if (retry === 0) {
-            results.push({ success: false, filename: file.name, error: err.message, folder })
+            allResults.push({ success: false, filename: file.name, error: err.message, folder })
+            setUploadResults([...allResults])
           } else {
             await new Promise(r => setTimeout(r, 1000))
           }
         }
       }
       
-      setUploadResults([...results])
       if (i < fileArray.length - 1) await new Promise(r => setTimeout(r, 500))
     }
     
@@ -181,6 +183,8 @@ function App() {
 
   return (
     <div className="min-h-screen py-6 px-4 relative">
+      <ThemeToggle />
+      
       <a 
         href="https://github.com/chnbsdan/pcbed" 
         target="_blank" 

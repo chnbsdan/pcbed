@@ -13,7 +13,6 @@ function App() {
   const [uploadResults, setUploadResults] = useState([])
   const [isUploading, setIsUploading] = useState(false)
   const [convertToWebp, setConvertToWebp] = useState(false)
-  // 删除 const [uploadKey, setUploadKey] = useState(0)
 
   const isManagePage = typeof window !== 'undefined' && window.location.pathname === '/manage'
   
@@ -122,23 +121,23 @@ function App() {
   const handleUpload = async (files, folder) => {
     setIsUploading(true)
     setUploadResults([])
-    // 删除 setUploadKey(prev => prev + 1)
     
     const fileArray = Array.from(files)
-    const resultsRef = { current: [] }
+    const tempResults = []
     
     for (let i = 0; i < fileArray.length; i++) {
       let file = fileArray[i]
       const ext = file.name.split('.').pop().toLowerCase()
       
       if (!['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif'].includes(ext)) {
-        resultsRef.current.push({ 
+        tempResults.push({ 
           success: false, 
           filename: file.name, 
           error: '格式不支持', 
           folder 
         })
-        setUploadResults([...resultsRef.current])
+        // 每处理完一张就更新一次 UI
+        setUploadResults([...tempResults])
         continue
       }
       
@@ -164,13 +163,14 @@ function App() {
         try {
           const data = await uploadImage(file, folder)
           if (data.success) {
-            resultsRef.current.push({ 
+            tempResults.push({ 
               success: true, 
               filename: data.filename, 
               url: data.url, 
               folder 
             })
-            setUploadResults([...resultsRef.current])
+            // 每成功上传一张就更新一次 UI
+            setUploadResults([...tempResults])
             uploaded = true
           } else {
             throw new Error(data.error || '上传失败')
@@ -178,13 +178,13 @@ function App() {
         } catch (err) {
           retry--
           if (retry === 0) {
-            resultsRef.current.push({ 
+            tempResults.push({ 
               success: false, 
               filename: file.name, 
               error: err.message, 
               folder 
             })
-            setUploadResults([...resultsRef.current])
+            setUploadResults([...tempResults])
           } else {
             await new Promise(r => setTimeout(r, 1000))
           }
@@ -223,7 +223,7 @@ function App() {
             convertToWebp={convertToWebp}
             onConvertChange={setConvertToWebp}
           />
-          <UploadResult results={uploadResults} />  {/* 删除 key={uploadKey} */}
+          <UploadResult results={uploadResults} />
         </div>
         
         <Footer />

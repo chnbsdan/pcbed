@@ -20,7 +20,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.5);  /* 加深遮罩 */
+    background: rgba(0, 0, 0, 0.5);
     pointer-events: none;
     z-index: 0;
   }
@@ -109,6 +109,7 @@
 /* 暗色模式下的卡片背景 */
 .dark .card {
   background-color: rgba(0, 0, 0, 0.3) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
 .dark .border-gray-300 {

@@ -66,7 +66,6 @@ function App() {
           const ctx = canvas.getContext('2d')
           ctx.drawImage(img, 0, 0)
           
-          // 从 localStorage 读取压缩质量，默认 85
           let savedQuality = localStorage.getItem('compressQuality')
           let quality = savedQuality ? parseInt(savedQuality) / 100 : 0.85
           
@@ -133,8 +132,9 @@ function App() {
 
   // 批量上传 - 修复版
   const handleUpload = async (files, folder) => {
-    console.log('===== 开始上传 =====')
-    console.log('文件数量:', files.length)
+    console.log('===== App.jsx handleUpload =====')
+    console.log('收到文件数量:', files.length)
+    console.log('文件列表:', Array.from(files).map(f => f.name))
     
     setIsUploading(true)
     setUploadResults([])
@@ -147,9 +147,7 @@ function App() {
       const ext = file.name.split('.').pop().toLowerCase()
       
       if (!['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif'].includes(ext)) {
-        const failResult = { success: false, filename: file.name, error: '格式不支持', folder }
-        allResults.push(failResult)
-        console.log(`❌ 格式不支持: ${file.name}`)
+        allResults.push({ success: false, filename: file.name, error: '格式不支持', folder })
         setUploadResults([...allResults])
         continue
       }
@@ -176,10 +174,9 @@ function App() {
         try {
           const data = await uploadImage(file, folder)
           if (data.success) {
-            const successResult = { success: true, filename: data.filename, url: data.url, folder }
-            allResults.push(successResult)
+            allResults.push({ success: true, filename: data.filename, url: data.url, folder })
             console.log(`✅ 上传成功: ${data.filename}`)
-            console.log(`当前已上传 ${allResults.length} 张图片`)
+            console.log(`当前已完成 ${allResults.length}/${fileArray.length}`)
             setUploadResults([...allResults])
             uploaded = true
           } else {
@@ -188,9 +185,7 @@ function App() {
         } catch (err) {
           retry--
           if (retry === 0) {
-            const failResult = { success: false, filename: file.name, error: err.message, folder }
-            allResults.push(failResult)
-            console.log(`❌ 上传失败: ${file.name}`)
+            allResults.push({ success: false, filename: file.name, error: err.message, folder })
             setUploadResults([...allResults])
           } else {
             await new Promise(r => setTimeout(r, 1000))
@@ -203,7 +198,6 @@ function App() {
     
     console.log('===== 上传完成 =====')
     console.log('总共上传了', allResults.length, '张图片')
-    console.log('结果数组:', allResults)
     console.log('===================')
     
     setIsUploading(false)

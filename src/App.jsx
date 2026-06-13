@@ -7,8 +7,8 @@ import UploadResult from './components/UploadResult'
 import Footer from './components/Footer'
 import { fetchStats, uploadImage } from './lib/api'
 import Manage from './pages/Manage'
-import ThemeToggle from './components/ThemeToggle'
 import ApiDocs from './pages/ApiDocs'
+import ThemeToggle from './components/ThemeToggle'
 
 function App() {
   const [stats, setStats] = useState({ grand_total: 0, github_folders: { wallpaper: 0, cover: 0 }, external_total: 0 })
@@ -16,16 +16,17 @@ function App() {
   const [isUploading, setIsUploading] = useState(false)
   const [convertToWebp, setConvertToWebp] = useState(false)
 
- // 在 App 函数内部，return 之前添加路由判断
-const isManagePage = typeof window !== 'undefined' && window.location.pathname === '/manage'
-if (isManagePage) {
-  return <Manage />
-}
+  // 路由判断
+  const isManagePage = typeof window !== 'undefined' && window.location.pathname === '/manage'
+  if (isManagePage) {
+    return <Manage />
+  }
+  
+  const isApiDocsPage = typeof window !== 'undefined' && window.location.pathname === '/docs'
+  if (isApiDocsPage) {
+    return <ApiDocs />
+  }
 
-const isApiDocsPage = typeof window !== 'undefined' && window.location.pathname === '/docs'
-if (isApiDocsPage) {
-  return <ApiDocs />
-}
   const setRandomBackground = useCallback(() => {
     const img = new Image()
     const url = `/api/random?t=${Date.now()}`
@@ -52,42 +53,41 @@ if (isApiDocsPage) {
   }
 
   const compressImage = useCallback((file) => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.readAsDataURL(file)
-    reader.onload = (e) => {
-      const img = new Image()
-      img.src = e.target.result
-      img.onload = () => {
-        const canvas = document.createElement('canvas')
-        canvas.width = img.width
-        canvas.height = img.height
-        const ctx = canvas.getContext('2d')
-        ctx.drawImage(img, 0, 0)
-        
-        // 从 localStorage 读取压缩质量，默认 85
-        let savedQuality = localStorage.getItem('compressQuality')
-        let quality = savedQuality ? parseInt(savedQuality) / 100 : 0.85
-        
-        let dataUrl = canvas.toDataURL('image/jpeg', quality)
-        let size = dataURLToBlob(dataUrl).size
-        
-        // 如果仍然超过 3MB 且质量 > 0.6，继续降低质量
-        while (size > 3 * 1024 * 1024 && quality > 0.6) {
-          quality -= 0.05
-          dataUrl = canvas.toDataURL('image/jpeg', quality)
-          size = dataURLToBlob(dataUrl).size
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
+      reader.onload = (e) => {
+        const img = new Image()
+        img.src = e.target.result
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          canvas.width = img.width
+          canvas.height = img.height
+          const ctx = canvas.getContext('2d')
+          ctx.drawImage(img, 0, 0)
+          
+          // 从 localStorage 读取压缩质量，默认 85
+          let savedQuality = localStorage.getItem('compressQuality')
+          let quality = savedQuality ? parseInt(savedQuality) / 100 : 0.85
+          
+          let dataUrl = canvas.toDataURL('image/jpeg', quality)
+          let size = dataURLToBlob(dataUrl).size
+          
+          while (size > 3 * 1024 * 1024 && quality > 0.6) {
+            quality -= 0.05
+            dataUrl = canvas.toDataURL('image/jpeg', quality)
+            size = dataURLToBlob(dataUrl).size
+          }
+          
+          const name = file.name.replace(/\.[^/.]+$/, '')
+          const compressed = new File([dataURLToBlob(dataUrl)], `${name}.jpg`, { type: 'image/jpeg' })
+          resolve(compressed)
         }
-        
-        const name = file.name.replace(/\.[^/.]+$/, '')
-        const compressed = new File([dataURLToBlob(dataUrl)], `${name}.jpg`, { type: 'image/jpeg' })
-        resolve(compressed)
+        img.onerror = reject
       }
-      img.onerror = reject
-    }
-    reader.onerror = reject
-  })
-}, [])
+      reader.onerror = reject
+    })
+  }, [])
 
   const convertToWebP = useCallback((file, quality = 0.85) => {
     return new Promise((resolve, reject) => {
@@ -131,7 +131,11 @@ if (isApiDocsPage) {
     return new Blob([u8arr], { type: 'image/jpeg' })
   }
 
+  // 批量上传 - 修复版
   const handleUpload = async (files, folder) => {
+    console.log('===== 开始上传 =====')
+    console.log('文件数量:', files.length)
+    
     setIsUploading(true)
     setUploadResults([])
     
@@ -143,7 +147,9 @@ if (isApiDocsPage) {
       const ext = file.name.split('.').pop().toLowerCase()
       
       if (!['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif'].includes(ext)) {
-        allResults.push({ success: false, filename: file.name, error: '格式不支持', folder })
+        const failResult = { success: false, filename: file.name, error: '格式不支持', folder }
+        allResults.push(failResult)
+        console.log(`❌ 格式不支持: ${file.name}`)
         setUploadResults([...allResults])
         continue
       }
@@ -170,7 +176,10 @@ if (isApiDocsPage) {
         try {
           const data = await uploadImage(file, folder)
           if (data.success) {
-            allResults.push({ success: true, filename: data.filename, url: data.url, folder })
+            const successResult = { success: true, filename: data.filename, url: data.url, folder }
+            allResults.push(successResult)
+            console.log(`✅ 上传成功: ${data.filename}`)
+            console.log(`当前已上传 ${allResults.length} 张图片`)
             setUploadResults([...allResults])
             uploaded = true
           } else {
@@ -179,7 +188,9 @@ if (isApiDocsPage) {
         } catch (err) {
           retry--
           if (retry === 0) {
-            allResults.push({ success: false, filename: file.name, error: err.message, folder })
+            const failResult = { success: false, filename: file.name, error: err.message, folder }
+            allResults.push(failResult)
+            console.log(`❌ 上传失败: ${file.name}`)
             setUploadResults([...allResults])
           } else {
             await new Promise(r => setTimeout(r, 1000))
@@ -189,6 +200,11 @@ if (isApiDocsPage) {
       
       if (i < fileArray.length - 1) await new Promise(r => setTimeout(r, 500))
     }
+    
+    console.log('===== 上传完成 =====')
+    console.log('总共上传了', allResults.length, '张图片')
+    console.log('结果数组:', allResults)
+    console.log('===================')
     
     setIsUploading(false)
     loadStats()

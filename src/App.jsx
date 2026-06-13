@@ -130,13 +130,12 @@ function App() {
     return new Blob([u8arr], { type: 'image/jpeg' })
   }
 
-  // 批量上传 - 接收所有文件，循环处理，累积结果
   const handleUpload = async (files, folder) => {
     console.log('===== App.jsx handleUpload =====')
     console.log('收到文件数量:', files.length)
     
     setIsUploading(true)
-    setUploadResults([])  // 只在开始时清空一次
+    setUploadResults([])
     
     const fileArray = Array.from(files)
     const allResults = []
@@ -174,7 +173,7 @@ function App() {
           const data = await uploadImage(file, folder)
           if (data.success) {
             allResults.push({ success: true, filename: data.filename, url: data.url, folder })
-            console.log(`✅ 上传成功: ${data.filename} (${i+1}/${fileArray.length})`)
+            console.log(`✅ 上传成功: ${data.filename}`)
             setUploadResults([...allResults])
             uploaded = true
           } else {
@@ -196,7 +195,6 @@ function App() {
     
     console.log('===== 上传完成 =====')
     console.log('总共上传了', allResults.length, '张图片')
-    console.log('===================')
     
     setIsUploading(false)
     loadStats()
@@ -204,8 +202,33 @@ function App() {
 
   return (
     <div className="min-h-screen py-6 px-4 relative">
-      <ThemeToggle />
+      {/* 右上角导航栏 */}
+      <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+        {/* 管理后台入口 */}
+        <a 
+          href="/manage" 
+          className="bg-white/20 backdrop-blur-sm hover:bg-white/30 transition px-3 py-2 rounded-lg text-white text-sm flex items-center gap-2"
+          title="管理后台"
+        >
+          <i className="fas fa-cog"></i>
+          <span className="hidden sm:inline">管理</span>
+        </a>
+        
+        {/* API 文档入口 */}
+        <a 
+          href="/docs" 
+          className="bg-white/20 backdrop-blur-sm hover:bg-white/30 transition px-3 py-2 rounded-lg text-white text-sm flex items-center gap-2"
+          title="API 文档"
+        >
+          <i className="fas fa-book"></i>
+          <span className="hidden sm:inline">文档</span>
+        </a>
+        
+        {/* 主题切换按钮 */}
+        <ThemeToggle />
+      </div>
       
+      {/* 左上角 LOGO */}
       <a 
         href="https://github.com/chnbsdan/pcbed" 
         target="_blank" 

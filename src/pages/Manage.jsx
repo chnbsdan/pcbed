@@ -1,4 +1,4 @@
-// src/pages/Manage.jsx - 图片管理页面（完整版，含批量复制）
+// src/pages/Manage.jsx - 图片管理页面（完整版：搜索 + 批量删除 + 批量复制）
 import React, { useState, useEffect } from 'react'
 import { fetchImageList, copyToClipboard, batchCopyLinks } from '../lib/api'
 import ThemeToggle from '../components/ThemeToggle'
@@ -14,7 +14,7 @@ export default function Manage() {
   const [copiedId, setCopiedId] = useState(null)
   
   const [currentPage, setCurrentPage] = useState(1)
-  const pageSize = 32
+  const pageSize = 64
   
   const [previewImage, setPreviewImage] = useState(null)
   const [deletingId, setDeletingId] = useState(null)
@@ -23,6 +23,9 @@ export default function Manage() {
   // 批量选择状态
   const [selectedImages, setSelectedImages] = useState(new Set())
   const [showBatchMenu, setShowBatchMenu] = useState(false)
+  
+  // 搜索状态
+  const [searchKeyword, setSearchKeyword] = useState('')
 
   const getProxyUrl = (img) => {
     if (img.source === 'external') {
@@ -96,7 +99,7 @@ export default function Manage() {
       
       if (result.success) {
         await loadImages()
-        setSelectedImages(new Set()) // 清空选择
+        setSelectedImages(new Set())
         alert(`✅ 已删除 "${img.name}"`)
       } else {
         alert(`❌ 删除失败: ${result.error || '未知错误'}`)
@@ -109,10 +112,56 @@ export default function Manage() {
     }
   }
 
+  // 批量删除
+  const handleBatchDelete = async () => {
+    const selectedCount = selectedImages.size
+    if (selectedCount === 0) {
+      alert('请先选择图片')
+      return
+    }
+    
+    if (!confirm(`确定要删除选中的 ${selectedCount} 张图片吗？\n\n⚠️ 此操作不可恢复！`)) {
+      return
+    }
+    
+    const selectedImgList = paginatedImages.filter(img => selectedImages.has(img.name))
+    let successCount = 0
+    let failCount = 0
+    
+    for (const img of selectedImgList) {
+      try {
+        const response = await fetch(`/api/admin/delete`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            filename: img.name,
+            folder: activeTab,
+            sha: img.sha,
+            source: img.source
+          })
+        })
+        
+        const result = await response.json()
+        if (result.success) {
+          successCount++
+        } else {
+          failCount++
+        }
+      } catch (err) {
+        failCount++
+      }
+    }
+    
+    alert(`✅ 删除完成\n成功: ${successCount} 张\n失败: ${failCount} 张`)
+    setSelectedImages(new Set())
+    await loadImages()
+  }
+
   const handleTabChange = (tab) => {
     setActiveTab(tab)
     setCurrentPage(1)
-    setSelectedImages(new Set()) // 切换分类时清空选择
+    setSearchKeyword('')
+    setSelectedImages(new Set())
     setMobileMenuOpen(false)
   }
 
@@ -151,11 +200,16 @@ export default function Manage() {
     setShowBatchMenu(false)
   }
 
-  const currentImages = images[activeTab] || []
-  const totalCount = currentImages.length
+  // 过滤图片（搜索）
+  const allImages = images[activeTab] || []
+  const filteredImages = searchKeyword.trim() === '' 
+    ? allImages 
+    : allImages.filter(img => img.name.toLowerCase().includes(searchKeyword.toLowerCase()))
+  
+  const totalCount = filteredImages.length
   const totalPages = Math.ceil(totalCount / pageSize)
   const startIndex = (currentPage - 1) * pageSize
-  const paginatedImages = currentImages.slice(startIndex, startIndex + pageSize)
+  const paginatedImages = filteredImages.slice(startIndex, startIndex + pageSize)
 
   // 未登录界面
   if (!isAuthenticated) {
@@ -167,8 +221,8 @@ export default function Manage() {
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 sm:p-8 w-full max-w-md border border-white/30">
           <div className="text-center mb-6">
             <i className="fas fa-lock text-5xl text-white/70 mb-3"></i>
-            <h2 className="text-2xl font-bold text-white">管理员登录</h2>
-            <p className="text-white/50 text-sm mt-1">请输入管理员密码以访问图床</p>
+            <h2 className="text-2xl font-bold text-white">管理后台</h2>
+            <p className="text-white/50 text-sm mt-1">请输入密码进入</p>
           </div>
           
           <form onSubmit={handleLogin} className="space-y-4">
@@ -176,7 +230,7 @@ export default function Manage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="请输入管理员密码"
+              placeholder="请输入管理密码"
               className="w-full px-4 py-2 rounded-lg bg-white/20 text-white placeholder-white/50 border border-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500"
               autoFocus
             />
@@ -191,7 +245,7 @@ export default function Manage() {
               className="w-full py-2 rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-medium transition flex items-center justify-center gap-2"
             >
               <i className="fas fa-sign-in-alt"></i>
-              验证进入
+              进入管理
             </button>
           </form>
           
@@ -212,7 +266,7 @@ export default function Manage() {
       backgroundImage: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       backgroundAttachment: 'fixed'
     }}>
-     <ThemeToggle /> 
+      <ThemeToggle />
       
       {/* 移动端菜单按钮 */}
       <button
@@ -340,54 +394,89 @@ export default function Manage() {
           </div>
         </div>
 
-       {/* 批量操作栏 */}
-{selectedImages.size > 0 && (
-  <div className="bg-blue-600/30 backdrop-blur-sm rounded-lg p-3 mb-4 flex items-center justify-between flex-wrap gap-2">
-    <span className="text-white text-sm flex items-center gap-2">
-      <i className="fas fa-check-circle"></i>
-      已选择 {selectedImages.size} 张图片
-      <button
-        onClick={selectAll}
-        className="text-xs text-white/70 hover:text-white underline ml-2"
-      >
-        {selectedImages.size === paginatedImages.length ? '取消全选' : '全选'}
-      </button>
-    </span>
-    <div className="relative">
-      <button
-        onClick={() => setShowBatchMenu(!showBatchMenu)}
-        className="px-3 py-1.5 rounded-lg bg-white/20 hover:bg-white/30 text-white text-sm flex items-center gap-2 transition"
-      >
-        <i className="fas fa-copy"></i>
-        批量复制
-        <i className="fas fa-chevron-down text-xs"></i>
-      </button>
-      {showBatchMenu && (
-        // 改成向上弹出，并提高 z-index
-        <div className="absolute bottom-full right-0 mb-2 w-44 bg-gray-800 rounded-lg shadow-xl overflow-hidden z-[200] border border-gray-700">
-          <button
-            onClick={() => handleBatchCopy('url')}
-            className="w-full px-4 py-2 text-left text-white hover:bg-gray-700 text-sm flex items-center gap-2 transition"
-          >
-            <i className="fas fa-link"></i> 复制链接 (URL)
-          </button>
-          <button
-            onClick={() => handleBatchCopy('markdown')}
-            className="w-full px-4 py-2 text-left text-white hover:bg-gray-700 text-sm flex items-center gap-2 transition"
-          >
-            <i className="fab fa-markdown"></i> 复制 Markdown
-          </button>
-          <button
-            onClick={() => handleBatchCopy('html')}
-            className="w-full px-4 py-2 text-left text-white hover:bg-gray-700 text-sm flex items-center gap-2 transition"
-          >
-            <i className="fab fa-html5"></i> 复制 HTML
-          </button>
+        {/* 搜索框 */}
+        <div className="mb-4">
+          <div className="relative">
+            <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-white/40 text-sm"></i>
+            <input
+              type="text"
+              placeholder="按文件名搜索图片..."
+              value={searchKeyword}
+              onChange={(e) => {
+                setSearchKeyword(e.target.value)
+                setCurrentPage(1)
+              }}
+              className="w-full pl-9 pr-4 py-2 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            {searchKeyword && (
+              <button
+                onClick={() => setSearchKeyword('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white"
+              >
+                <i className="fas fa-times-circle"></i>
+              </button>
+            )}
+          </div>
         </div>
-      )}
-    </div>
-  </div>
-)}
+
+        {/* 批量操作栏 */}
+        {selectedImages.size > 0 && (
+          <div className="bg-blue-600/30 backdrop-blur-sm rounded-lg p-3 mb-4 flex items-center justify-between flex-wrap gap-2">
+            <span className="text-white text-sm flex items-center gap-2">
+              <i className="fas fa-check-circle"></i>
+              已选择 {selectedImages.size} 张图片
+              <button
+                onClick={selectAll}
+                className="text-xs text-white/70 hover:text-white underline ml-2"
+              >
+                {selectedImages.size === paginatedImages.length ? '取消全选' : '全选'}
+              </button>
+            </span>
+            <div className="flex gap-2">
+              {/* 批量删除按钮 */}
+              <button
+                onClick={handleBatchDelete}
+                className="px-3 py-1.5 rounded-lg bg-red-500/80 hover:bg-red-600 text-white text-sm flex items-center gap-2 transition"
+              >
+                <i className="fas fa-trash-alt"></i>
+                批量删除 ({selectedImages.size})
+              </button>
+              {/* 批量复制按钮 */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowBatchMenu(!showBatchMenu)}
+                  className="px-3 py-1.5 rounded-lg bg-white/20 hover:bg-white/30 text-white text-sm flex items-center gap-2 transition"
+                >
+                  <i className="fas fa-copy"></i>
+                  批量复制
+                  <i className="fas fa-chevron-down text-xs"></i>
+                </button>
+                {showBatchMenu && (
+                  <div className="absolute right-0 mt-2 w-44 bg-gray-800 rounded-lg shadow-lg overflow-hidden z-50 border border-gray-700">
+                    <button
+                      onClick={() => handleBatchCopy('url')}
+                      className="w-full px-4 py-2 text-left text-white hover:bg-gray-700 text-sm flex items-center gap-2"
+                    >
+                      <i className="fas fa-link"></i> 复制链接 (URL)
+                    </button>
+                    <button
+                      onClick={() => handleBatchCopy('markdown')}
+                      className="w-full px-4 py-2 text-left text-white hover:bg-gray-700 text-sm flex items-center gap-2"
+                    >
+                      <i className="fab fa-markdown"></i> 复制 Markdown
+                    </button>
+                    <button
+                      onClick={() => handleBatchCopy('html')}
+                      className="w-full px-4 py-2 text-left text-white hover:bg-gray-700 text-sm flex items-center gap-2"
+                    >
+                      <i className="fab fa-html5"></i> 复制 HTML
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* 图片网格 */}
         {loading ? (
@@ -397,11 +486,24 @@ export default function Manage() {
         ) : paginatedImages.length === 0 ? (
           <div className="text-center py-20 bg-white/5 rounded-xl backdrop-blur-sm">
             <i className="fas fa-folder-open text-5xl text-white/30 mb-3"></i>
-            <p className="text-white/50">暂无图片</p>
-            <a href="/" className="inline-block mt-4 text-blue-400 hover:text-blue-300 flex items-center gap-1">
-              <i className="fas fa-upload"></i>
-              去上传图片 →
-            </a>
+            <p className="text-white/50">
+              {searchKeyword ? `没有找到 "${searchKeyword}" 相关的图片` : '暂无图片'}
+            </p>
+            {searchKeyword && (
+              <button
+                onClick={() => setSearchKeyword('')}
+                className="inline-block mt-4 text-blue-400 hover:text-blue-300 flex items-center gap-1 mx-auto"
+              >
+                <i className="fas fa-undo"></i>
+                清除搜索
+              </button>
+            )}
+            {!searchKeyword && (
+              <a href="/" className="inline-block mt-4 text-blue-400 hover:text-blue-300 flex items-center gap-1">
+                <i className="fas fa-upload"></i>
+                去上传图片 →
+              </a>
+            )}
           </div>
         ) : (
           <>
@@ -414,7 +516,6 @@ export default function Manage() {
                     key={img.sha || idx}
                     className="group bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden border border-white/20 hover:border-white/40 transition-all hover:scale-105 hover:shadow-lg relative"
                   >
-                    {/* 复选框 */}
                     <input
                       type="checkbox"
                       checked={selectedImages.has(img.name)}

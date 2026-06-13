@@ -29,7 +29,7 @@ function App() {
 
   const setRandomBackground = useCallback(() => {
     const img = new Image()
-    const url = `/api/random?t=${Date.now()}`
+    const url = `/api/wallpaper?t=${Date.now()}`
     img.onload = () => {
       document.body.style.backgroundImage = `url(${url})`
     }

@@ -4,7 +4,6 @@ export default function UploadArea({ onUpload, isLoading, convertToWebp, onConve
   const [dragOver, setDragOver] = useState(false)
   const [folder, setFolder] = useState('wallpaper')
   const [bgRefresh, setBgRefresh] = useState(false)
-  const [uploadProgress, setUploadProgress] = useState(null)
   const fileInputRef = useRef(null)
 
   const refreshBackground = () => {
@@ -19,28 +18,11 @@ export default function UploadArea({ onUpload, isLoading, convertToWebp, onConve
     img.src = url
   }
 
-  // ✅ 正确：只调用一次 onUpload，传递所有文件
   const handleFiles = (files) => {
     if (!files || files.length === 0) return
     console.log('UploadArea 收到文件数量:', files.length)
-    
-    // 显示进度条（初始状态）
-    setUploadProgress({ current: 0, total: files.length })
-    
-    // 只调用一次，传递所有文件
     onUpload(files, folder)
   }
-
-  // 更新进度的函数（由 App.jsx 回调）
-  const updateProgress = (current, total) => {
-    setUploadProgress({ current, total })
-    if (current === total) {
-      setTimeout(() => setUploadProgress(null), 2000)
-    }
-  }
-
-  // 暴露更新进度的方法给父组件（可选）
-  React.useImperativeHandle(useRef(), () => ({ updateProgress }))
 
   const handleFileSelect = (e) => {
     const files = e.target.files
@@ -59,7 +41,6 @@ export default function UploadArea({ onUpload, isLoading, convertToWebp, onConve
     handleFiles(files)
   }
 
-  // 粘贴上传
   useEffect(() => {
     const handlePaste = (e) => {
       const items = e.clipboardData?.items
@@ -229,30 +210,6 @@ export default function UploadArea({ onUpload, isLoading, convertToWebp, onConve
         className="hidden"
         onChange={handleFileSelect}
       />
-
-      {uploadProgress && (
-        <div className="mt-3">
-          <div className="flex items-center justify-between text-sm text-white/70 mb-1">
-            <span><i className="fas fa-spinner fa-pulse mr-1"></i>上传中...</span>
-            <span>{uploadProgress.current} / {uploadProgress.total}</span>
-          </div>
-          <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
-            <div 
-              className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${(uploadProgress.current / uploadProgress.total) * 100}%` }}
-            ></div>
-          </div>
-        </div>
-      )}
-
-      {isLoading && !uploadProgress && (
-        <div className="mt-3 text-center">
-          <div className="inline-flex items-center gap-2 text-sm text-orange-600">
-            <div className="w-3 h-3 border-2 border-orange-600 border-t-transparent rounded-full animate-spin" />
-            上传中，请稍候...
-          </div>
-        </div>
-      )}
     </div>
   )
 }

@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',  // 添加这一行
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",

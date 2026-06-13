@@ -59,7 +59,7 @@ export default function Footer() {
         <span className="text-white/30">|</span>
         <a href="/docs" className="text-white/60 dark:text-white/40 hover:text-white transition text-xs flex items-center gap-1">
           <i className="fas fa-book"></i>
-          API 文档
+          API文档
         </a>
       </div>
       
@@ -69,7 +69,7 @@ export default function Footer() {
         <span className="text-white/80 dark:text-white/70 font-mono mx-1">{timeElapsed.hours}</span>小时
         <span className="text-white/80 dark:text-white/70 font-mono mx-1">{timeElapsed.minutes}</span>分钟
         <span className="text-white/80 dark:text-white/70 font-mono mx-1">{timeElapsed.seconds}</span>秒
-        <span className="ml-1">| 服务器运行正常</span>
+        <span className="ml-1">| 当前服务器运行正常</span>
         <span className="relative flex h-2 w-2">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
           <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>

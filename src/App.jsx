@@ -8,6 +8,7 @@ import Footer from './components/Footer'
 import { fetchStats, uploadImage } from './lib/api'
 import Manage from './pages/Manage'
 import ThemeToggle from './components/ThemeToggle'
+import ApiDocs from './pages/ApiDocs'
 
 function App() {
   const [stats, setStats] = useState({ grand_total: 0, github_folders: { wallpaper: 0, cover: 0 }, external_total: 0 })
@@ -15,11 +16,16 @@ function App() {
   const [isUploading, setIsUploading] = useState(false)
   const [convertToWebp, setConvertToWebp] = useState(false)
 
-  const isManagePage = typeof window !== 'undefined' && window.location.pathname === '/manage'
-  if (isManagePage) {
-    return <Manage />
-  }
+ // 在 App 函数内部，return 之前添加路由判断
+const isManagePage = typeof window !== 'undefined' && window.location.pathname === '/manage'
+if (isManagePage) {
+  return <Manage />
+}
 
+const isApiDocsPage = typeof window !== 'undefined' && window.location.pathname === '/docs'
+if (isApiDocsPage) {
+  return <ApiDocs />
+}
   const setRandomBackground = useCallback(() => {
     const img = new Image()
     const url = `/api/random?t=${Date.now()}`

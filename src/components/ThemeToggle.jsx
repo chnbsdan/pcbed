@@ -1,4 +1,4 @@
-// src/components/ThemeToggle.jsx
+// src/components/ThemeToggle.jsx - 修改为无固定定位
 import React, { useState, useEffect } from 'react'
 
 export default function ThemeToggle() {
@@ -32,13 +32,19 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="fixed bottom-4 right-4 z-50 bg-white/80 dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-700 transition p-2 rounded-full shadow-md border border-gray-200 dark:border-gray-600"
+      className="bg-white/20 backdrop-blur-sm hover:bg-white/30 transition p-2 rounded-lg text-white text-sm flex items-center gap-2"
       title={isDark ? '切换到亮色模式' : '切换到暗色模式'}
     >
       {isDark ? (
-        <i className="fas fa-sun text-yellow-500 text-base"></i>
+        <>
+          <i className="fas fa-sun text-yellow-400"></i>
+          <span className="hidden sm:inline">亮色</span>
+        </>
       ) : (
-        <i className="fas fa-moon text-gray-700 text-base"></i>
+        <>
+          <i className="fas fa-moon"></i>
+          <span className="hidden sm:inline">暗色</span>
+        </>
       )}
     </button>
   )

@@ -5,7 +5,7 @@ const apis = [
   { id: 'random', label: '随机图片接口', icon: 'fa-dice-d6', path: '/api/random' },
   { id: 'wallpaper', label: '横屏图片接口', icon: 'fa-arrows-alt', path: '/api/wallpaper' },
   { id: 'cover', label: '竖屏图片接口', icon: 'fa-mobile-alt', path: '/api/cover' },
-  { id: 'json', label: 'JSON 接口', icon: 'fa-code', path: '/api/json' },
+  { id: 'json', label: 'JSON 接口', icon: 'fa-code', path: '/api/random?format=json' },
 ]
 
 export default function ApiSection() {

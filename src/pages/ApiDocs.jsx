@@ -145,10 +145,12 @@ export default function ApiDocs() {
       <div className="max-w-4xl mx-auto">
         {/* 头部 */}
         <div className="text-center mb-8">
-          <i className="fas fa-book text-5xl text-white/70 mb-3"></i>
-          <h1 className="text-3xl font-bold text-white mb-2">API 接口文档</h1>
-          <p className="text-white/60">所有接口均支持 GET 请求（上传除外）</p>
-        </div>
+  <div className="flex items-center justify-center gap-3 mb-2">
+    <i className="fas fa-book text-3xl text-white/70"></i>
+    <h1 className="text-2xl md:text-3xl font-bold text-white">API 接口文档</h1>
+  </div>
+  <p className="text-white/60 text-sm">所有接口均支持 GET 请求（上传除外）</p>
+</div>
 
         {/* API 列表 */}
         <div className="space-y-4">

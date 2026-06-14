@@ -43,19 +43,19 @@ export default function ApiDocs() {
       response: '直接返回图片文件'
     },
     {
-      id: 'json',
-      name: 'JSON 格式',
-      path: '/api/json',
-      method: 'GET',
-      description: '返回随机图片的 JSON 信息',
-      example: `curl ${baseUrl}/api/json`,
-      response: `{
+  id: 'json',
+  name: 'JSON 格式',
+  path: '/api/random?format=json',
+  method: 'GET',
+  description: '返回随机图片的 JSON 信息',
+  example: `curl "${baseUrl}/api/random?format=json"`,
+  response: `{
   "code": "200",
-  "imgurl": "${baseUrl}/api/random",
+  "imgurl": "${baseUrl}/api/random?format=json",
   "source": "https://raw.githubusercontent.com/chnbsdan/pcbed/main/wallpaper/xxx.jpg",
   "total": 128
 }`
-    },
+   },
     {
       id: 'stats',
       name: '统计信息',

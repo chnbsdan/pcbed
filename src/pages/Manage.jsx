@@ -241,12 +241,14 @@ export default function Manage() {
               </p>
             )}
 
+           <div className="flex justify-center">
             <button
-  type="submit"
-  className="w-full py-2 rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-medium transition"
->
-  验证
-</button>
+                type="submit"
+                 className="px-6 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-medium transition"
+                >
+                 验证
+            </button>
+          </div>
             
           </form>
           

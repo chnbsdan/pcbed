@@ -1,21 +1,10 @@
 // src/pages/ApiDocs.jsx - 完整版
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { copyToClipboard } from '../lib/api'
 import ThemeToggle from '../components/ThemeToggle'
 
 export default function ApiDocs() {
   const [copiedApi, setCopiedApi] = useState(null)
-  const [isDarkMode, setIsDarkMode] = useState(false)
-
-  // 监听主题变化
-  useEffect(() => {
-    const observer = new MutationObserver(() => {
-      setIsDarkMode(document.documentElement.classList.contains('dark'))
-    })
-    observer.observe(document.documentElement, { attributes: true })
-    setIsDarkMode(document.documentElement.classList.contains('dark'))
-    return () => observer.disconnect()
-  }, [])
 
   const handleCopy = (text, id) => {
     copyToClipboard(text)
@@ -119,21 +108,12 @@ export default function ApiDocs() {
   ]
 
   return (
-    <div 
-      className="min-h-screen py-6 px-4" 
-      style={{ 
-        backgroundImage: isDarkMode 
-          ? 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)'
-          : '#fefefe',  // 改成柔和米白
-        backgroundAttachment: 'fixed',
-        transition: 'background-image 0.3s ease'
-      }}
-    >
+    <div className="min-h-screen py-6 px-4 bg-white dark:bg-gray-900 transition-colors duration-300">
       {/* 右上角导航栏 */}
       <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
         <a 
           href="/" 
-          className="bg-white/20 backdrop-blur-sm hover:bg-white/30 transition px-3 py-2 rounded-lg text-white text-sm flex items-center gap-2"
+          className="bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 transition px-3 py-2 rounded-lg text-gray-700 dark:text-white text-sm flex items-center gap-2"
           title="返回首页"
         >
           <i className="fas fa-arrow-left"></i>
@@ -145,69 +125,69 @@ export default function ApiDocs() {
       <div className="max-w-4xl mx-auto">
         {/* 头部 */}
         <div className="text-center mb-8">
-  <div className="flex items-center justify-center gap-3 mb-2">
-    <i className="fas fa-book text-3xl text-white/70"></i>
-    <h1 className="text-2xl md:text-3xl font-bold text-white">API 接口文档</h1>
-  </div>
-  <p className="text-white/60 text-sm">所有接口均支持 GET 请求（上传除外）</p>
-</div>
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <i className="fas fa-book text-3xl text-gray-600 dark:text-white/70"></i>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">API 接口文档</h1>
+          </div>
+          <p className="text-gray-500 dark:text-white/60 text-sm">所有接口均支持 GET 请求（上传除外）</p>
+        </div>
 
         {/* API 列表 */}
         <div className="space-y-4">
           {apis.map((api) => {
             const fullUrl = `${baseUrl}${api.path}${api.id === 'image' ? '?path=wallpaper/example.jpg' : ''}`
             return (
-              <div key={api.id} className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 overflow-hidden">
-                <div className="flex items-center justify-between p-4 border-b border-white/20 bg-white/5">
+              <div key={api.id} className="bg-white/80 dark:bg-white/5 backdrop-blur-sm rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden shadow-sm">
+                <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-white/5">
                   <div className="flex items-center gap-3 flex-wrap">
                     <span className={`px-2 py-1 rounded text-xs font-mono ${
-                      api.method === 'GET' ? 'bg-green-500/80 text-white' : 'bg-orange-500/80 text-white'
+                      api.method === 'GET' ? 'bg-green-500 text-white' : 'bg-orange-500 text-white'
                     }`}>
                       {api.method}
                     </span>
-                    <code className="text-white/90 text-sm font-mono">{api.path}</code>
+                    <code className="text-gray-700 dark:text-white/80 text-sm font-mono">{api.path}</code>
                   </div>
                   <div className="flex items-center gap-2">
                     <a
                       href={fullUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-white/60 hover:text-white transition p-1.5 rounded-lg hover:bg-white/10"
+                      className="text-gray-500 dark:text-white/50 hover:text-gray-700 dark:hover:text-white transition p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10"
                       title="打开链接"
                     >
                       <i className="fas fa-external-link-alt"></i>
                     </a>
                     <button
                       onClick={() => handleCopy(fullUrl, api.id)}
-                      className="text-white/60 hover:text-white transition p-1.5 rounded-lg hover:bg-white/10"
+                      className="text-gray-500 dark:text-white/50 hover:text-gray-700 dark:hover:text-white transition p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10"
                       title="复制接口地址"
                     >
-                      {copiedApi === api.id ? <i className="fas fa-check text-green-400"></i> : <i className="fas fa-copy"></i>}
+                      {copiedApi === api.id ? <i className="fas fa-check text-green-500"></i> : <i className="fas fa-copy"></i>}
                     </button>
                   </div>
                 </div>
                 
                 <div className="p-4 space-y-3">
-                  <p className="text-white/70 text-sm">{api.description}</p>
+                  <p className="text-gray-600 dark:text-white/60 text-sm">{api.description}</p>
                   
                   <div>
-                    <p className="text-white/50 text-xs mb-1">📝 示例</p>
-                    <div className="bg-black/40 rounded-lg p-3 overflow-x-auto">
-                      <code className="text-white/80 text-xs font-mono break-all">{api.example}</code>
+                    <p className="text-gray-500 dark:text-white/40 text-xs mb-1">📝 示例</p>
+                    <div className="bg-gray-50 dark:bg-black/30 rounded-lg p-3 overflow-x-auto">
+                      <code className="text-gray-700 dark:text-white/70 text-xs font-mono break-all">{api.example}</code>
                       <button
                         onClick={() => handleCopy(api.example, `example-${api.id}`)}
-                        className="ml-3 text-white/40 hover:text-white/80 transition text-xs"
+                        className="ml-3 text-gray-400 dark:text-white/30 hover:text-gray-600 dark:hover:text-white/70 transition text-xs"
                         title="复制示例"
                       >
-                        {copiedApi === `example-${api.id}` ? <i className="fas fa-check text-green-400"></i> : <i className="fas fa-copy"></i>}
+                        {copiedApi === `example-${api.id}` ? <i className="fas fa-check text-green-500"></i> : <i className="fas fa-copy"></i>}
                       </button>
                     </div>
                   </div>
                   
                   <div>
-                    <p className="text-white/50 text-xs mb-1">📤 返回示例</p>
-                    <div className="bg-black/40 rounded-lg p-3 overflow-x-auto">
-                      <pre className="text-white/70 text-xs font-mono whitespace-pre-wrap break-all">{api.response}</pre>
+                    <p className="text-gray-500 dark:text-white/40 text-xs mb-1">📤 返回示例</p>
+                    <div className="bg-gray-50 dark:bg-black/30 rounded-lg p-3 overflow-x-auto">
+                      <pre className="text-gray-700 dark:text-white/70 text-xs font-mono whitespace-pre-wrap break-all">{api.response}</pre>
                     </div>
                   </div>
                 </div>
@@ -217,9 +197,9 @@ export default function ApiDocs() {
         </div>
 
         {/* 页尾说明 */}
-        <div className="text-center mt-8 text-white/40 text-xs">
+        <div className="text-center mt-8 text-gray-400 dark:text-white/30 text-xs">
           <p>所有图片均代理访问，保障私有仓库安全</p>
-          <p className="mt-1">更多信息请访问 <a href="https://github.com/chnbsdan/pcbed" target="_blank" rel="noopener noreferrer" className="text-white/60 hover:text-white">GitHub 仓库</a></p>
+          <p className="mt-1">更多信息请访问 <a href="https://github.com/chnbsdan/pcbed" target="_blank" rel="noopener noreferrer" className="text-gray-500 dark:text-white/50 hover:text-gray-700 dark:hover:text-white">GitHub 仓库</a></p>
         </div>
       </div>
     </div>

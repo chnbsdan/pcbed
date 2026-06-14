@@ -251,13 +251,7 @@ export default function Manage() {
           </div>
             
           </form>
-          
-          <div className="text-center mt-6">
-            <a href="/" className="text-white/50 hover:text-white text-sm transition flex items-center justify-center gap-1">
-  <i className="fas fa-arrow-left"></i>
-  返回
-</a>
-          </div>
+                    
         </div>
       </div>
     )

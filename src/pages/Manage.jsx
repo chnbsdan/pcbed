@@ -607,65 +607,80 @@ export default function Manage() {
         )}
       </div>
 
-      {/* 图片预览弹窗 */}
-      {previewImage && (
-        <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm"
-          onClick={() => setPreviewImage(null)}
-        >
-          <div 
-            className="relative max-w-[90vw] max-h-[90vh]"
+     {/* 图片预览弹窗 */}
+{previewImage && (
+  <div 
+    className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+    onClick={() => setPreviewImage(null)}
+  >
+    <div 
+      className="relative max-w-[90vw] max-h-[90vh]"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <img
+        src={previewImage.url}
+        alt={previewImage.name}
+        className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+      />
+      {/* 关闭按钮 */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation()
+          setPreviewImage(null)
+        }}
+        className="absolute -top-10 sm:-top-12 right-0 text-white/70 hover:text-white text-xl sm:text-2xl flex items-center gap-1"
+      >
+        <i className="fas fa-times-circle"></i>
+      </button>
+      {/* 图片信息栏 - 添加打开和复制按钮 */}
+      <div className="absolute bottom-0 left-0 right-0 bg-black/60 backdrop-blur-sm p-2 sm:p-3 rounded-b-lg">
+        <p className="text-white text-xs sm:text-sm truncate">
+          <i className="fas fa-image mr-2"></i>
+          {previewImage.name}
+        </p>
+        <div className="flex justify-end gap-2 sm:gap-3 mt-1 sm:mt-2">
+          {/* 打开图片按钮 */}
+          <a
+            href={getProxyUrl(previewImage)}
+            target="_blank"
+            rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
+            className="text-white/70 hover:text-blue-400 text-xs sm:text-sm flex items-center gap-1 transition"
           >
-            <img
-              src={previewImage.url}
-              alt={previewImage.name}
-              className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
-            />
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                setPreviewImage(null)
-              }}
-              className="absolute -top-10 sm:-top-12 right-0 text-white/70 hover:text-white text-xl sm:text-2xl flex items-center gap-1"
-            >
-              <i className="fas fa-times-circle"></i>
-            </button>
-            <div className="absolute bottom-0 left-0 right-0 bg-black/60 backdrop-blur-sm p-2 sm:p-3 rounded-b-lg">
-              <p className="text-white text-xs sm:text-sm truncate">
-                <i className="fas fa-image mr-2"></i>
-                {previewImage.name}
-              </p>
-              <div className="flex justify-end gap-2 sm:gap-3 mt-1 sm:mt-2">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    const proxyUrl = getProxyUrl(previewImage)
-                    copyToClipboard(proxyUrl)
-                    setCopiedId(previewImage.name)
-                    setTimeout(() => setCopiedId(null), 2000)
-                  }}
-                  className="text-white/70 hover:text-green-400 text-xs sm:text-sm flex items-center gap-1 transition"
-                >
-                  <i className="fas fa-copy"></i>
-                  复制链接
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleDelete(previewImage, activeTab, e)
-                    setPreviewImage(null)
-                  }}
-                  className="text-white/70 hover:text-red-400 text-xs sm:text-sm flex items-center gap-1 transition"
-                >
-                  <i className="fas fa-trash-alt"></i>
-                  删除
-                </button>
-              </div>
-            </div>
-          </div>
+            <i className="fas fa-external-link-alt"></i>
+            打开
+          </a>
+          {/* 复制链接按钮 */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              const proxyUrl = getProxyUrl(previewImage)
+              copyToClipboard(proxyUrl)
+              setCopiedId(previewImage.name)
+              setTimeout(() => setCopiedId(null), 2000)
+            }}
+            className="text-white/70 hover:text-green-400 text-xs sm:text-sm flex items-center gap-1 transition"
+          >
+            <i className="fas fa-copy"></i>
+            复制链接
+          </button>
+          {/* 删除按钮 */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              handleDelete(previewImage, activeTab, e)
+              setPreviewImage(null)
+            }}
+            className="text-white/70 hover:text-red-400 text-xs sm:text-sm flex items-center gap-1 transition"
+          >
+            <i className="fas fa-trash-alt"></i>
+            删除
+          </button>
         </div>
-      )}
+      </div>
+    </div>
+  </div>
+)}
     </div>
   )
 }

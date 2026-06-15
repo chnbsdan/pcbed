@@ -137,7 +137,7 @@ export default function ApiDocs() {
           {apis.map((api) => {
             const fullUrl = `${baseUrl}${api.path}${api.id === 'image' ? '?path=wallpaper/example.jpg' : ''}`
             return (
-              <div key={api.id} className="bg-gray-100 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+              <div key={api.id} className="bg-gray-300 dark:bg-gray-1000 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
                 <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
                   <div className="flex items-center gap-3 flex-wrap">
                     <span className={`px-2 py-1 rounded text-xs font-mono text-white ${

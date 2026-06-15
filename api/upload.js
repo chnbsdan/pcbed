@@ -1,69 +1,28 @@
-// api/upload.js
-export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+// api/upload.js - 合并版（支持预签名 URL 和传统上传）
+const GITHUB_USER = process.env.GITHUB_USER || 'chnbsdan'
+const GITHUB_REPO = process.env.GITHUB_REPO || 'pcbed'
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN
+
+// 获取预签名 URL（用于前端直传大文件）
+async function getPresignedUrl(filename, folder) {
+  // 生成文件名
+  const now = new Date()
+  const datePrefix = now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0')
+  const originalName = filename.replace(/\.[^/.]+$/, '')
+  const safeName = originalName.replace(/[^a-zA-Z0-9\u4e00-\u9fa5_-]/g, '_')
+  const ext = filename.split('.').pop().toLowerCase()
+  const finalFilename = `${datePrefix}_${safeName}.${ext}`
+  const filePath = `${folder}/${finalFilename}`
   
-  if (req.method === 'OPTIONS') return res.status(200).end()
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
-  
-  const GITHUB_TOKEN = process.env.GITHUB_TOKEN
-  const GITHUB_USER = process.env.GITHUB_USER || 'chnbsdan'
-  const GITHUB_REPO = process.env.GITHUB_REPO || 'pcbed'
-  
-  if (!GITHUB_TOKEN) return res.status(500).json({ error: 'GITHUB_TOKEN missing' })
-  
-  try {
-    const chunks = []
-    for await (const chunk of req) chunks.push(chunk)
-    const buffer = Buffer.concat(chunks)
-    const contentType = req.headers['content-type'] || ''
-    const boundary = getBoundary(contentType)
-    if (!boundary) return res.status(400).json({ error: 'Cannot parse boundary' })
-    
-    const formData = parseMultipart(buffer, boundary)
-    const file = formData.file
-    const targetFolder = formData.folder || 'wallpaper'
-    
-    if (!file || !file.data) return res.status(400).json({ error: 'No file uploaded' })
-    if (file.size > 10 * 1024 * 1024) return res.status(400).json({ error: 'File too large' })
-    
-    const ext = file.filename.split('.').pop().toLowerCase()
-    if (!['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif'].includes(ext)) {
-      return res.status(400).json({ error: 'Unsupported file format' })
+  return {
+    uploadUrl: `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${filePath}`,
+    filename: finalFilename,
+    folder: folder,
+    path: filePath,
+    headers: {
+      'Authorization': `Bearer ${GITHUB_TOKEN}`,
+      'Content-Type': 'application/json'
     }
-    
-    const now = new Date()
-    const datePrefix = now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0')
-    const originalName = file.filename.replace(/\.[^/.]+$/, '')
-    const safeName = originalName.replace(/[^a-zA-Z0-9\u4e00-\u9fa5_-]/g, '_')
-    const filename = `${datePrefix}_${safeName}.${ext}`
-    const base64Content = file.data.toString('base64')
-    
-    const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${targetFolder}/${filename}`
-    const response = await fetch(apiUrl, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${GITHUB_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ message: `Upload ${filename}`, content: base64Content, branch: 'main' })
-    })
-    
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('GitHub API error:', errorText)
-      return res.status(response.status).json({ error: 'GitHub upload failed' })
-    }
-    
-    const host = req.headers.host
-    const protocol = req.headers['x-forwarded-proto'] || 'https'
-    // 🔧 修改：使用代理 API 格式
-    const fullUrl = `${protocol}://${host}/api/image?path=${targetFolder}/${filename}`
-    
-    res.status(200).json({ success: true, filename, folder: targetFolder, url: fullUrl })
-  } catch (error) {
-    console.error('Upload error:', error)
-    res.status(500).json({ error: 'Internal server error' })
   }
 }
 
@@ -141,4 +100,91 @@ function parseMultipart(buffer, boundary) {
   }
   
   return result
+}
+
+export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+  
+  if (req.method === 'OPTIONS') return res.status(200).end()
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
+  
+  if (!GITHUB_TOKEN) {
+    return res.status(500).json({ error: 'GITHUB_TOKEN missing' })
+  }
+  
+  const { action } = req.query
+  
+  // 动作1: 获取预签名 URL（用于前端直传大文件）
+  if (action === 'presign') {
+    const { filename, folder } = req.body
+    if (!filename || !folder) {
+      return res.status(400).json({ error: 'Missing filename or folder' })
+    }
+    
+    // 验证文件夹
+    if (!['wallpaper', 'cover'].includes(folder)) {
+      return res.status(400).json({ error: 'Invalid folder' })
+    }
+    
+    const presigned = await getPresignedUrl(filename, folder)
+    return res.status(200).json({
+      success: true,
+      ...presigned
+    })
+  }
+  
+  // 动作2: 传统上传（通过 Vercel 中转，用于小文件）
+  try {
+    const chunks = []
+    for await (const chunk of req) chunks.push(chunk)
+    const buffer = Buffer.concat(chunks)
+    const contentType = req.headers['content-type'] || ''
+    const boundary = getBoundary(contentType)
+    if (!boundary) return res.status(400).json({ error: 'Cannot parse boundary' })
+    
+    const formData = parseMultipart(buffer, boundary)
+    const file = formData.file
+    const targetFolder = formData.folder || 'wallpaper'
+    
+    if (!file || !file.data) return res.status(400).json({ error: 'No file uploaded' })
+    if (file.size > 10 * 1024 * 1024) return res.status(400).json({ error: 'File too large' })
+    
+    const ext = file.filename.split('.').pop().toLowerCase()
+    if (!['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif'].includes(ext)) {
+      return res.status(400).json({ error: 'Unsupported file format' })
+    }
+    
+    const now = new Date()
+    const datePrefix = now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0')
+    const originalName = file.filename.replace(/\.[^/.]+$/, '')
+    const safeName = originalName.replace(/[^a-zA-Z0-9\u4e00-\u9fa5_-]/g, '_')
+    const filename = `${datePrefix}_${safeName}.${ext}`
+    const base64Content = file.data.toString('base64')
+    
+    const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${targetFolder}/${filename}`
+    const response = await fetch(apiUrl, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${GITHUB_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ message: `Upload ${filename}`, content: base64Content, branch: 'main' })
+    })
+    
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('GitHub API error:', errorText)
+      return res.status(response.status).json({ error: 'GitHub upload failed' })
+    }
+    
+    const host = req.headers.host
+    const protocol = req.headers['x-forwarded-proto'] || 'https'
+    const fullUrl = `${protocol}://${host}/api/image?path=${targetFolder}/${filename}`
+    
+    res.status(200).json({ success: true, filename, folder: targetFolder, url: fullUrl })
+  } catch (error) {
+    console.error('Upload error:', error)
+    res.status(500).json({ error: 'Internal server error' })
+  }
 }

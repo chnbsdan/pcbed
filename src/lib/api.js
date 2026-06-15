@@ -82,3 +82,63 @@ export async function deleteHistoryRecord(id) {
   const res = await fetch(`/api/history?id=${id}`, { method: 'DELETE' })
   return res.json()
 }
+
+// ========== 直传 GitHub（绕过 Vercel 4.5MB 限制）==========
+
+// 获取预签名 URL
+export async function getPresignedUrl(filename, folder, fileSize, fileType) {
+  const res = await fetch(`/api/upload?action=presign`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ filename, folder, fileSize, fileType })
+  })
+  
+  if (!res.ok) {
+    const error = await res.json()
+    throw new Error(error.error || 'Failed to get upload URL')
+  }
+  
+  return res.json()
+}
+
+// 直传文件到 GitHub（适用于大文件，绕过 Vercel 限制）
+export async function uploadDirect(file, folder) {
+  // 1. 获取预签名 URL
+  const { uploadUrl, filename, headers } = await getPresignedUrl(file.name, folder, file.size, file.type)
+  
+  // 2. 读取文件内容并转 Base64
+  const fileContent = await file.arrayBuffer()
+  const base64Content = btoa(String.fromCharCode(...new Uint8Array(fileContent)))
+  
+  // 3. 直接 PUT 到 GitHub API
+  const response = await fetch(uploadUrl, {
+    method: 'PUT',
+    headers: {
+      'Authorization': headers.Authorization,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      message: `Upload ${filename}`,
+      content: base64Content,
+      branch: 'main'
+    })
+  })
+  
+  if (!response.ok) {
+    let errorMessage = 'Upload failed'
+    try {
+      const error = await response.json()
+      errorMessage = error.message || errorMessage
+    } catch (e) {}
+    throw new Error(errorMessage)
+  }
+  
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://pcbed.vercel.app'
+  
+  return {
+    success: true,
+    filename: filename,
+    folder: folder,
+    url: `${baseUrl}/api/image?path=${folder}/${filename}`
+  }
+}

@@ -67,7 +67,7 @@ function App() {
           ctx.drawImage(img, 0, 0)
           
           let savedQuality = localStorage.getItem('compressQuality')
-          let quality = savedQuality ? parseInt(savedQuality) / 100 : 0.85
+          let quality = savedQuality ? parseInt(savedQuality) / 100 : 0.9
           
           let dataUrl = canvas.toDataURL('image/jpeg', quality)
           let size = dataURLToBlob(dataUrl).size
@@ -159,7 +159,7 @@ function App() {
         }
       }
       
-      if (file.size > 3 * 1024 * 1024 && file.type !== 'image/webp') {
+      if (file.size > 5 * 1024 * 1024 && file.type !== 'image/webp') {
         try {
           file = await compressImage(file)
         } catch (e) {}
